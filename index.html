@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="AaronBux MVP readiness and solution-discovery tracker" />
+  <title>AaronBux MVP Readiness Tracker</title>
+  <link rel="stylesheet" href="assets/app.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand-block">
+      <div class="eyebrow">AARONBUX · PRODUCT READINESS</div>
+      <h1>MVP Solution Discovery Tracker</h1>
+      <p>Track committed features from thesis → working behavior → user-ready → commercial-ready. Git activity is evidence, not the milestone.</p>
+    </div>
+    <button id="sourcesButton" class="ghost-button" type="button">Source of truth</button>
+  </header>
+
+  <main>
+    <section class="summary-grid" aria-label="Roadmap summary">
+      <article class="metric-card"><span>Current horizon</span><strong>NOW</strong><small>Minimum viable intelligence product</small></article>
+      <article class="metric-card"><span>Progress model</span><strong>8 gates</strong><small>Feature readiness, not code %</small></article>
+      <article class="metric-card"><span>Scope control</span><strong>Fixed features</strong><small>Behavior can refine; new capabilities go to backlog</small></article>
+    </section>
+
+    <section class="roadmap-shell">
+      <div class="roadmap-head">
+        <div>
+          <div class="eyebrow">NOW / NEXT / LATER</div>
+          <h2>Commercialization roadmap</h2>
+        </div>
+        <div id="horizonTabs" class="tabs" role="tablist" aria-label="Roadmap horizon"></div>
+      </div>
+      <p id="horizonDescription" class="horizon-description"></p>
+      <div id="featureList" class="feature-list"></div>
+    </section>
+  </main>
+
+  <dialog id="sourcesDialog" class="sources-dialog">
+    <form method="dialog" class="dialog-inner">
+      <div class="dialog-head">
+        <div><div class="eyebrow">STATIC V0.1</div><h2>Product context source of truth</h2></div>
+        <button class="icon-button" aria-label="Close source of truth">×</button>
+      </div>
+      <p>These documents seed the current tracker. Later, GitHub commits/PRs/project updates can populate feature evidence without changing the readiness model.</p>
+      <div id="sourceList" class="source-list"></div>
+      <div class="integration-note">
+        <strong>Future integration seam</strong>
+        <p>Map GitHub events to feature evidence types: <code>IMPLEMENT</code>, <code>LEARN</code>, <code>DECIDE</code>, <code>VALIDATE</code>.</p>
+      </div>
+    </form>
+  </dialog>
+
+  <script type="module" src="assets/app.js"></script>
+</body>
+</html>
