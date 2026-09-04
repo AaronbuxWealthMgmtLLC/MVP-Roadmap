@@ -51,20 +51,38 @@ export const readinessStates = [
   'COMMERCIAL_READY'
 ];
 
+export const sourceRepositories = {
+  'onboarding-v3': {
+    id: 'onboarding-v3',
+    label: 'AaronBux MVP Webapp',
+    owner: 'a73955184-droid',
+    repo: 'Onboarding-V3',
+    baseUrl: 'https://github.com/a73955184-droid/Onboarding-V3'
+  },
+  'mvp-roadmap': {
+    id: 'mvp-roadmap',
+    label: 'MVP Readiness Tracker',
+    owner: 'AaronbuxWealthMgmtLLC',
+    repo: 'MVP-Roadmap',
+    baseUrl: 'https://github.com/AaronbuxWealthMgmtLLC/MVP-Roadmap'
+  }
+};
+
 /**
  * discoveryTrace item contract:
  * {
  *   type: one of discoveryTypes,
- *   stageDate: 'YYYY-MM-DD',
+ *   stageDate: 'YYYY-MM-DD' | null,
+ *   dateStatus: 'needs-product-owner-confirmation' (only when stageDate is null),
  *   title: string,
  *   plainEnglish: string,
  *   significance: string,
  *   scopeImpact: string,
  *   githubEvidence: [{
+ *     repositoryId: a key in sourceRepositories,
+ *     commitSha: string,
  *     commitDate: 'YYYY-MM-DD',
- *     hash: string,
- *     message: string,
- *     url: string
+ *     commitMessage: string
  *   }]
  * }
  *
@@ -110,7 +128,199 @@ export const features = [
     nonScope: ['Best-investment ranking', 'Return forecasting', 'Automated optimization', 'Trade execution'],
     stage: 5,
     readinessStage: 'BEHAVIOR_REFINING',
-    discoveryTrace: [],
+    discoveryTrace: [
+      {
+        type: 'DECIDE',
+        stageDate: null,
+        dateStatus: 'needs-product-owner-confirmation',
+        title: 'Original Assess Fit thesis documented',
+        plainEnglish: 'Assess a verified candidate in a specific sleeve and return one deterministic result: Add, Replace, Redundant, or Do not add.',
+        significance: 'Established the first bounded MVP definition for security fit before user-facing integration.',
+        scopeImpact: 'none',
+        githubEvidence: [
+          {
+            repositoryId: 'onboarding-v3',
+            commitSha: '9090a057b623f35f097815c16a6715cc4c514fd1',
+            commitDate: '2026-08-28',
+            commitMessage: 'adding docs'
+          }
+        ]
+      },
+      {
+        type: 'IMPLEMENT',
+        stageDate: '2026-08-29',
+        title: 'First working security-fit behavior',
+        plainEnglish: 'Users could inspect sleeve candidates and run the initial fit assessment inside the Portfolio Map curation flow.',
+        significance: 'Made the original four-outcome Assess Fit hypothesis executable and visible in the product.',
+        scopeImpact: 'none',
+        githubEvidence: [
+          {
+            repositoryId: 'onboarding-v3',
+            commitSha: 'ec5b3ac8c801e2b52c9c325e156eaf458e175ce9',
+            commitDate: '2026-08-28',
+            commitMessage: 'phase-1 - part1'
+          },
+          {
+            repositoryId: 'onboarding-v3',
+            commitSha: '25311f966111e7226988dba0db09f6d042539173',
+            commitDate: '2026-08-29',
+            commitMessage: 'feat(portfolio-map): add interactive sleeve curation lab'
+          }
+        ]
+      },
+      {
+        type: 'LEARN',
+        stageDate: '2026-09-01',
+        title: 'Catalogue and readiness audit exposed blocked assessments',
+        plainEnglish: 'The repository audit found that exact eligibility and incomplete decision facts made much of the browsable catalogue unavailable for assessment.',
+        significance: 'Separated a genuinely negative fit result from an assessment that could not yet be completed.',
+        scopeImpact: 'none',
+        githubEvidence: [
+          {
+            repositoryId: 'onboarding-v3',
+            commitSha: '3d737d5ab09701e74d4787448c70cefe7875553b',
+            commitDate: '2026-09-01',
+            commitMessage: 'Audit and freeze the decision contract'
+          }
+        ]
+      },
+      {
+        type: 'VALIDATE',
+        stageDate: '2026-09-02',
+        title: 'Assessment availability corrected and verified',
+        plainEnglish: 'Readiness became field-aware and exact sleeve permissions were completed so eligible catalogue candidates could be assessed instead of appearing unavailable.',
+        significance: 'The post-change scenario report recorded that all 4,309 exact-eligibility-driven unavailable assessments disappeared.',
+        scopeImpact: 'none',
+        githubEvidence: [
+          {
+            repositoryId: 'onboarding-v3',
+            commitSha: '505739193c2a412c0954f51f23d83b945696370a',
+            commitDate: '2026-09-02',
+            commitMessage: 'Task 4 — Upgrade assessment readiness'
+          },
+          {
+            repositoryId: 'onboarding-v3',
+            commitSha: 'b55114cb1c9db8d872dff1418476b33c823ba54e',
+            commitDate: '2026-09-02',
+            commitMessage: 'The post-change report says all 4,309 exact-eligibility-driven unavailable assessments disappeared,'
+          }
+        ]
+      },
+      {
+        type: 'LEARN',
+        stageDate: '2026-09-03',
+        title: 'Four-outcome classification over-produced Redundant',
+        plainEnglish: 'The Phase-3 product contract recorded that the four-outcome model collapsed materially overlapping candidates into Redundant even when they changed portfolio exposure.',
+        significance: 'Established that structural classification was useful evidence but too coarse to be the final user decision; the later catalogue-wide audit quantified the effect.',
+        scopeImpact: 'none',
+        githubEvidence: [
+          {
+            repositoryId: 'onboarding-v3',
+            commitSha: 'c7d2e492e92399592155277ae65b827a7fcdc115',
+            commitDate: '2026-09-03',
+            commitMessage: 'Task 1 — Freeze and document the product-semantics change'
+          }
+        ]
+      },
+      {
+        type: 'DECIDE',
+        stageDate: '2026-09-03',
+        title: 'Move from classification to portfolio-delta decision support',
+        plainEnglish: 'Assess Fit would explain what changes, interpret overlap as a tradeoff, preserve valid choices, and identify the best default action.',
+        significance: 'Changed the product question from “Which fit label applies?” to “What changes, what are the tradeoffs, and what should I do by default?”',
+        scopeImpact: 'none',
+        githubEvidence: [
+          {
+            repositoryId: 'onboarding-v3',
+            commitSha: 'c7d2e492e92399592155277ae65b827a7fcdc115',
+            commitDate: '2026-09-03',
+            commitMessage: 'Task 1 — Freeze and document the product-semantics change'
+          }
+        ]
+      },
+      {
+        type: 'IMPLEMENT',
+        stageDate: '2026-09-03',
+        title: 'Portfolio-delta decision support implemented',
+        plainEnglish: 'The product now resolves incremental contribution, overlap, tradeoffs, available choices, and a preferred default, then presents them in Portfolio Map.',
+        significance: 'Turned Assess Fit into contextual decision support rather than a terminal security label.',
+        scopeImpact: 'none',
+        githubEvidence: [
+          {
+            repositoryId: 'onboarding-v3',
+            commitSha: 'c54e08f03ee5399894096b6f5e18dc2ee2e65dbc',
+            commitDate: '2026-09-03',
+            commitMessage: 'Task 3 — Build incremental-contribution analysis'
+          },
+          {
+            repositoryId: 'onboarding-v3',
+            commitSha: '69a742da5a17713a57d2dd33fa536ba765273572',
+            commitDate: '2026-09-03',
+            commitMessage: 'Task 4 — Interpret overlap as a tradeoff, not a verdict'
+          },
+          {
+            repositoryId: 'onboarding-v3',
+            commitSha: 'c7bb1b819a56e35753add85f7277f702b8ee7d10',
+            commitDate: '2026-09-03',
+            commitMessage: 'Task 5 — Build tradeoff resolver'
+          },
+          {
+            repositoryId: 'onboarding-v3',
+            commitSha: '051dc0a93357dfec8ea85bb8f6245d096649669d',
+            commitDate: '2026-09-03',
+            commitMessage: 'Task 6 — Build available-actions resolver'
+          },
+          {
+            repositoryId: 'onboarding-v3',
+            commitSha: '267f1d4d4a31893562390b889f6a349240067f88',
+            commitDate: '2026-09-03',
+            commitMessage: 'Task 7 — Build preferred-action resolver'
+          },
+          {
+            repositoryId: 'onboarding-v3',
+            commitSha: '5fb4d34365bdb799444941980f66581da29c8fce',
+            commitDate: '2026-09-03',
+            commitMessage: 'Task 10 — Route Portfolio Map through the Phase-3 resolver'
+          }
+        ]
+      },
+      {
+        type: 'VALIDATE',
+        stageDate: '2026-09-03',
+        title: 'Catalogue-wide Phase-3 audit',
+        plainEnglish: 'The new behavior completed all 20,218 audited scenarios and recovered meaningful additive choices from cases the old model called Redundant.',
+        significance: 'Validated that Phase 3 materially changed decision usefulness while identifying remaining metadata-granularity gaps.',
+        scopeImpact: 'none',
+        githubEvidence: [
+          {
+            repositoryId: 'onboarding-v3',
+            commitSha: '48ee1858e6f16fe7c29d8f8e0a247f7b077cbdea',
+            commitDate: '2026-09-03',
+            commitMessage: 'Task 13 — Catalogue-wide behavior audit'
+          }
+        ]
+      },
+      {
+        type: 'LEARN',
+        stageDate: null,
+        dateStatus: 'needs-product-owner-confirmation',
+        title: 'Flat candidate lists still make discovery inefficient',
+        plainEnglish: 'The supplied product direction says that a flat catalogue still asks users to search through too many interchangeable candidates.',
+        significance: 'Points to contribution-oriented discovery as the next refinement, but the date and supporting Git commit are not present in Onboarding-V3 main.',
+        scopeImpact: 'none',
+        githubEvidence: []
+      },
+      {
+        type: 'DECIDE',
+        stageDate: null,
+        dateStatus: 'needs-product-owner-confirmation',
+        title: 'Organize candidates around contribution purposes',
+        plainEnglish: 'The supplied product direction is to group candidates by the portfolio contribution a user is trying to make.',
+        significance: 'Defines the intended next step, but no dated decision record or contribution-catalogue implementation commit exists in Onboarding-V3 main yet.',
+        scopeImpact: 'none',
+        githubEvidence: []
+      }
+    ],
     scopeImpact: 'None — behavior refinement inside committed Asset Selection / Assess Fit.',
     evidence: [
       { type: 'IMPLEMENT', title: 'Four-outcome structural fit', detail: 'Initial behavior implemented Add / Replace / Redundant / Do not add.', source: 'Project update' },
@@ -286,3 +496,8 @@ export const features = [
     evidence: []
   }
 ];
+
+export const TRACKER_DATA = {
+  sourceRepositories,
+  features
+};

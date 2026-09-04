@@ -1,4 +1,4 @@
-import { features, horizons, readinessStages, sourceDocs } from '../data/product-context.js';
+import { features, horizons, readinessStages, sourceDocs, sourceRepositories } from '../data/product-context.js';
 
 const tabs = document.querySelector('#horizonTabs');
 const description = document.querySelector('#horizonDescription');
@@ -20,7 +20,7 @@ function progressMarkup(stage) {
   return readinessStages.map((_, i) => `<span class="progress-segment ${i < stage ? 'done' : i === stage ? 'current' : ''}"></span>`).join('');
 }
 
-function evidenceMarkup(items) {
+function legacyEvidenceMarkup(items) {
   if (!items.length) return '<p>No static project evidence added yet. This is where GitHub commits / PRs / project updates will later appear.</p>';
   return `<div class="evidence-list">${items.map(item => `
     <article class="evidence-item">
@@ -30,7 +30,49 @@ function evidenceMarkup(items) {
         <div class="evidence-detail">${escapeHtml(item.detail)}</div>
         <div class="evidence-source">Evidence: ${escapeHtml(item.source)}</div>
       </div>
-    </article>`).join('')}</div>`;
+  </article>`).join('')}</div>`;
+}
+
+function commitUrl(evidence) {
+  const repository = sourceRepositories[evidence.repositoryId];
+  if (!repository) return null;
+  return `${repository.baseUrl}/commit/${encodeURIComponent(evidence.commitSha)}`;
+}
+
+function githubEvidenceMarkup(items) {
+  if (!items.length) return '<div class="evidence-source">Git evidence: awaiting confirmation</div>';
+
+  return items.map(item => {
+    const repository = sourceRepositories[item.repositoryId];
+    const url = commitUrl(item);
+    const label = `${repository?.label ?? item.repositoryId} · ${item.commitSha.slice(0, 7)} · ${item.commitDate} · ${item.commitMessage}`;
+
+    return url
+      ? `<div class="evidence-source"><a href="${escapeHtml(url)}" target="_blank" rel="noopener">${escapeHtml(label)}</a></div>`
+      : `<div class="evidence-source">${escapeHtml(label)} (unknown repository)</div>`;
+  }).join('');
+}
+
+function discoveryTraceMarkup(items) {
+  return `<div class="evidence-list">${items.map(item => {
+    const dateLabel = item.stageDate ?? 'Date needs product-owner confirmation';
+    return `
+      <article class="evidence-item">
+        <div class="evidence-type ${escapeHtml(item.type)}">${escapeHtml(item.type)}<div class="evidence-source">${escapeHtml(dateLabel)}</div></div>
+        <div>
+          <div class="evidence-title">${escapeHtml(item.title)}</div>
+          <div class="evidence-detail">${escapeHtml(item.plainEnglish)}</div>
+          <div class="evidence-detail">Why it matters: ${escapeHtml(item.significance)}</div>
+          ${githubEvidenceMarkup(item.githubEvidence)}
+        </div>
+      </article>`;
+  }).join('')}</div>`;
+}
+
+function featureEvidenceMarkup(feature) {
+  return feature.discoveryTrace?.length
+    ? discoveryTraceMarkup(feature.discoveryTrace)
+    : legacyEvidenceMarkup(feature.evidence);
 }
 
 function featureMarkup(feature) {
@@ -54,7 +96,7 @@ function featureMarkup(feature) {
         <section class="detail-block scope-note"><h3>Scope impact</h3><p>${escapeHtml(feature.scopeImpact)}</p></section>
       </div>
       <section class="detail-block" style="margin-top:14px"><h3>Hard non-scope</h3><div class="chips">${feature.nonScope.map(item => `<span class="chip">${escapeHtml(item)}</span>`).join('')}</div></section>
-      <section class="evidence-section"><h3>Solution-discovery trace</h3>${evidenceMarkup(feature.evidence)}</section>
+      <section class="evidence-section"><h3>Solution-discovery trace</h3>${featureEvidenceMarkup(feature)}</section>
     </div>
   </article>`;
 }
