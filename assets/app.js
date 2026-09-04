@@ -20,6 +20,26 @@ function progressMarkup(stage) {
   return readinessStages.map((_, i) => `<span class="progress-segment ${i < stage ? 'done' : i === stage ? 'current' : ''}"></span>`).join('');
 }
 
+const featureSummaryOverrides = {
+  'asset-selection-fit': {
+    label: 'Assess Fit',
+    currentFocus: 'Organizing candidate choices around meaningful contributions to the sleeve.',
+    userReadyExit: 'User can discover a meaningful candidate, understand what changes and make an informed choice.'
+  }
+};
+
+function readinessLabel(feature) {
+  return feature.readinessStage?.replaceAll('_', ' ') ?? stageName(feature.stage).toUpperCase();
+}
+
+function summaryContent(feature) {
+  return featureSummaryOverrides[feature.id] ?? {
+    label: feature.title,
+    currentFocus: feature.discoveryQuestion,
+    userReadyExit: feature.exitCriterion
+  };
+}
+
 function legacyEvidenceMarkup(items) {
   if (!items.length) return '<p>No static project evidence added yet. This is where GitHub commits / PRs / project updates will later appear.</p>';
   return `<div class="evidence-list">${items.map(item => `
@@ -42,7 +62,7 @@ function commitUrl(evidence) {
 function githubEvidenceMarkup(items) {
   if (!items.length) return '<div class="evidence-source">Git evidence: awaiting confirmation</div>';
 
-  return items.map(item => {
+  const links = items.map(item => {
     const repository = sourceRepositories[item.repositoryId];
     const url = commitUrl(item);
     const label = `${repository?.label ?? item.repositoryId} · ${item.commitSha.slice(0, 7)} · ${item.commitDate} · ${item.commitMessage}`;
@@ -51,18 +71,49 @@ function githubEvidenceMarkup(items) {
       ? `<div class="evidence-source"><a href="${escapeHtml(url)}" target="_blank" rel="noopener">${escapeHtml(label)}</a></div>`
       : `<div class="evidence-source">${escapeHtml(label)} (unknown repository)</div>`;
   }).join('');
+
+  return `<details class="timeline-evidence"><summary>Supporting GitHub evidence (${items.length})</summary>${links}</details>`;
+}
+
+function calendarDayValue(date) {
+  if (!date) return null;
+  const [year, month, day] = date.split('-').map(Number);
+  return Date.UTC(year, month - 1, day);
+}
+
+function elapsedLabel(previousDate, currentDate) {
+  const previousDay = calendarDayValue(previousDate);
+  const currentDay = calendarDayValue(currentDate);
+  if (previousDay === null || currentDay === null) return null;
+
+  const days = Math.round((currentDay - previousDay) / 86400000);
+  if (days === 0) return 'same day';
+  return `${days} ${days === 1 ? 'day' : 'days'} later`;
+}
+
+function displayStageDate(stageDate) {
+  if (!stageDate) return 'DATE PENDING';
+  const [year, month, day] = stageDate.split('-').map(Number);
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    timeZone: 'UTC'
+  }).format(new Date(Date.UTC(year, month - 1, day))).toUpperCase();
 }
 
 function discoveryTraceMarkup(items) {
-  return `<div class="evidence-list">${items.map(item => {
-    const dateLabel = item.stageDate ?? 'Date needs product-owner confirmation';
+  return `<div class="discovery-timeline">${items.map((item, index) => {
+    const elapsed = index > 0 ? elapsedLabel(items[index - 1].stageDate, item.stageDate) : null;
     return `
-      <article class="evidence-item">
-        <div class="evidence-type ${escapeHtml(item.type)}">${escapeHtml(item.type)}<div class="evidence-source">${escapeHtml(dateLabel)}</div></div>
-        <div>
-          <div class="evidence-title">${escapeHtml(item.title)}</div>
-          <div class="evidence-detail">${escapeHtml(item.plainEnglish)}</div>
-          <div class="evidence-detail">Why it matters: ${escapeHtml(item.significance)}</div>
+      ${elapsed ? `<div class="timeline-elapsed"><span aria-hidden="true">↓</span> ${escapeHtml(elapsed)}</div>` : ''}
+      <article class="timeline-entry">
+        <time class="timeline-date" ${item.stageDate ? `datetime="${escapeHtml(item.stageDate)}"` : ''}>${escapeHtml(displayStageDate(item.stageDate))}</time>
+        <div class="timeline-rail" aria-hidden="true"><span class="timeline-dot"></span></div>
+        <div class="timeline-content">
+          <div class="timeline-type ${escapeHtml(item.type)}">${escapeHtml(item.type)}</div>
+          <h4>${escapeHtml(item.title)}</h4>
+          <p>${escapeHtml(item.plainEnglish)}</p>
+          <p class="timeline-significance">Why it matters: ${escapeHtml(item.significance)}</p>
           ${githubEvidenceMarkup(item.githubEvidence)}
         </div>
       </article>`;
@@ -76,19 +127,29 @@ function featureEvidenceMarkup(feature) {
 }
 
 function featureMarkup(feature) {
+  const summary = summaryContent(feature);
   return `<article class="feature-card" data-feature-id="${escapeHtml(feature.id)}">
     <button class="feature-summary" type="button" aria-expanded="false">
-      <div class="feature-topline">
-        <div>
-          <div class="feature-title">${escapeHtml(feature.title)}</div>
-          <div class="feature-job">${escapeHtml(feature.userJob)}</div>
+      <div class="feature-title">${escapeHtml(summary.label).toUpperCase()}</div>
+      <div class="feature-summary-grid">
+        <div class="feature-summary-field">
+          <span>Current status</span>
+          <strong class="readiness-state">${escapeHtml(readinessLabel(feature))}</strong>
         </div>
-        <span class="stage-pill">${escapeHtml(stageName(feature.stage))}</span>
+        <div class="feature-summary-field">
+          <span>Current focus</span>
+          <strong>${escapeHtml(summary.currentFocus)}</strong>
+        </div>
+        <div class="feature-summary-field">
+          <span>Exit to User Ready</span>
+          <strong>${escapeHtml(summary.userReadyExit)}</strong>
+        </div>
       </div>
       <div class="progress-track" aria-hidden="true">${progressMarkup(feature.stage)}</div>
-      <div class="stage-caption">${feature.stage + 1} / ${readinessStages.length} · ${escapeHtml(stageName(feature.stage))}</div>
+      <div class="feature-expand-label"><span>See how we got here</span><span class="expand-arrow" aria-hidden="true">↓</span></div>
     </button>
     <div class="feature-detail">
+      <section class="evidence-section"><h3>How ${escapeHtml(summary.label)} evolved</h3>${featureEvidenceMarkup(feature)}</section>
       <div class="detail-grid">
         <section class="detail-block"><h3>Minimum viable behavior</h3><p>${escapeHtml(feature.minimumBehavior)}</p></section>
         <section class="detail-block"><h3>Solution-discovery question</h3><p>${escapeHtml(feature.discoveryQuestion)}</p></section>
@@ -96,7 +157,6 @@ function featureMarkup(feature) {
         <section class="detail-block scope-note"><h3>Scope impact</h3><p>${escapeHtml(feature.scopeImpact)}</p></section>
       </div>
       <section class="detail-block" style="margin-top:14px"><h3>Hard non-scope</h3><div class="chips">${feature.nonScope.map(item => `<span class="chip">${escapeHtml(item)}</span>`).join('')}</div></section>
-      <section class="evidence-section"><h3>Solution-discovery trace</h3>${featureEvidenceMarkup(feature)}</section>
     </div>
   </article>`;
 }
