@@ -30,6 +30,49 @@ export const readinessStages = [
   'Commercial-ready'
 ];
 
+// Canonical v0.2 values for the dated solution-discovery contract. The
+// readinessStages export above remains in place for the existing stage-indexed
+// UI until that UI is migrated to consume readinessStage directly.
+export const discoveryTypes = [
+  'IMPLEMENT',
+  'LEARN',
+  'DECIDE',
+  'VALIDATE'
+];
+
+export const readinessStates = [
+  'THESIS',
+  'WORKING',
+  'EXERCISED',
+  'BEHAVIOR_REFINING',
+  'BEHAVIOR_FROZEN',
+  'USER_READY',
+  'CUSTOMER_VALIDATING',
+  'COMMERCIAL_READY'
+];
+
+/**
+ * discoveryTrace item contract:
+ * {
+ *   type: one of discoveryTypes,
+ *   stageDate: 'YYYY-MM-DD',
+ *   title: string,
+ *   plainEnglish: string,
+ *   significance: string,
+ *   scopeImpact: string,
+ *   githubEvidence: [{
+ *     commitDate: 'YYYY-MM-DD',
+ *     hash: string,
+ *     message: string,
+ *     url: string
+ *   }]
+ * }
+ *
+ * stageDate records the product-discovery event. commitDate records when its
+ * supporting GitHub change was committed; neither date is derived from the
+ * other.
+ */
+
 export const sourceDocs = [
   { id: 'mvp1', label: 'April MVP1', path: 'docs/source-of-truth/april-mvp1.pdf', note: 'Insights/planning product; clarity, confidence and decision support; no execution.' },
   { id: 'mvp2', label: 'April MVP2', path: 'docs/source-of-truth/april-mvp2.pdf', note: 'Execution + premium intelligence concept.' },
@@ -48,6 +91,8 @@ export const features = [
     exitCriterion: 'A user can explain what system they received, why it fits, and what each sleeve is for.',
     nonScope: ['Optimization engine', 'Automated investing', 'Continuous auto-management'],
     stage: 6,
+    readinessStage: 'USER_READY',
+    discoveryTrace: [],
     scopeImpact: 'None — committed MVP capability.',
     evidence: [
       { type: 'IMPLEMENT', title: 'Portfolio systems codified', detail: 'Recommended portfolio systems and sleeve structure exist in the web app.', source: 'Current project state' },
@@ -64,6 +109,8 @@ export const features = [
     exitCriterion: 'A user can distinguish useful addition, intentional tilt, alternative implementation, replacement, and poor contextual fit.',
     nonScope: ['Best-investment ranking', 'Return forecasting', 'Automated optimization', 'Trade execution'],
     stage: 5,
+    readinessStage: 'BEHAVIOR_REFINING',
+    discoveryTrace: [],
     scopeImpact: 'None — behavior refinement inside committed Asset Selection / Assess Fit.',
     evidence: [
       { type: 'IMPLEMENT', title: 'Four-outcome structural fit', detail: 'Initial behavior implemented Add / Replace / Redundant / Do not add.', source: 'Project update' },
@@ -83,6 +130,8 @@ export const features = [
     exitCriterion: 'The user can answer what materially changed and what tradeoff they accepted.',
     nonScope: ['Sophisticated optimizer', 'Institutional Monte Carlo', 'Predictive guarantees'],
     stage: 2,
+    readinessStage: 'EXERCISED',
+    discoveryTrace: [],
     scopeImpact: 'None — committed MVP1 feature.',
     evidence: [{ type: 'IMPLEMENT', title: 'Decision-support foundation being reused', detail: 'Current asset-selection work is establishing the before/after and tradeoff primitives needed by What-If.', source: 'Current project dependency' }]
   },
@@ -96,6 +145,8 @@ export const features = [
     exitCriterion: 'The user can identify what is represented, duplicated, missing or concentrated and why it matters.',
     nonScope: ['Institutional analytics terminal', 'Tax optimizer', 'Execution'],
     stage: 1,
+    readinessStage: 'WORKING',
+    discoveryTrace: [],
     scopeImpact: 'None — committed MVP1 feature.',
     evidence: []
   },
@@ -109,6 +160,8 @@ export const features = [
     exitCriterion: 'The user understands what risk exists, where it comes from and whether it warrants review.',
     nonScope: ['Guarantees', 'Predictive risk claims', 'Automatic remediation'],
     stage: 1,
+    readinessStage: 'WORKING',
+    discoveryTrace: [],
     scopeImpact: 'None — committed MVP1 feature.',
     evidence: []
   },
@@ -122,6 +175,8 @@ export const features = [
     exitCriterion: 'The user can answer what changed, which part of their system it relates to, and whether they need to review anything.',
     nonScope: ['News terminal', 'Price prediction', 'Trading signals'],
     stage: 1,
+    readinessStage: 'WORKING',
+    discoveryTrace: [],
     scopeImpact: 'None — committed MVP1 feature.',
     evidence: []
   },
@@ -135,6 +190,8 @@ export const features = [
     exitCriterion: 'The user knows how often the strategy deserves attention and why.',
     nonScope: ['Productivity tracker', 'Complex time accounting'],
     stage: 1,
+    readinessStage: 'WORKING',
+    discoveryTrace: [],
     scopeImpact: 'None — committed delivery-roadmap behavior.',
     evidence: []
   },
@@ -148,6 +205,8 @@ export const features = [
     exitCriterion: 'The user understands why they were alerted and what deserves review without being told to trade.',
     nonScope: ['Automatic trading', 'Generic engagement notifications'],
     stage: 1,
+    readinessStage: 'WORKING',
+    discoveryTrace: [],
     scopeImpact: 'None — committed MVP1 feature.',
     evidence: []
   },
@@ -161,6 +220,8 @@ export const features = [
     exitCriterion: 'A user can create an account, complete required checks, pay, and access the paid experience.',
     nonScope: ['Brokerage onboarding', 'Trading', 'Complex packaging experimentation'],
     stage: 1,
+    readinessStage: 'WORKING',
+    discoveryTrace: [],
     scopeImpact: 'Sequencing decision — pulled forward to enable monetizable V1.',
     evidence: []
   },
@@ -174,6 +235,8 @@ export const features = [
     exitCriterion: 'External evidence supports the value proposition or clearly identifies the next bounded refinement.',
     nonScope: ['Open-ended feature expansion'],
     stage: 0,
+    readinessStage: 'THESIS',
+    discoveryTrace: [],
     scopeImpact: 'None — explicitly planned Oct–Dec validation period.',
     evidence: []
   },
@@ -187,6 +250,8 @@ export const features = [
     exitCriterion: 'A decision can be recorded and later revisited meaningfully, with goal context influencing the experience somewhere visible.',
     nonScope: ['Full note app', 'Full financial planning suite'],
     stage: 0,
+    readinessStage: 'THESIS',
+    discoveryTrace: [],
     scopeImpact: 'None — remaining committed MVP1 behavior.',
     evidence: []
   },
@@ -200,6 +265,8 @@ export const features = [
     exitCriterion: 'Real holdings and order state are reliable enough for the intelligence layer to operate on live context.',
     nonScope: ['Autonomous AI trading'],
     stage: 0,
+    readinessStage: 'THESIS',
+    discoveryTrace: [],
     scopeImpact: 'Deferred by latest roadmap to V3 onward.',
     evidence: []
   },
@@ -213,6 +280,8 @@ export const features = [
     exitCriterion: 'Users can determine what they submitted, what happened, and the current status.',
     nonScope: ['Complex active-trading terminal'],
     stage: 0,
+    readinessStage: 'THESIS',
+    discoveryTrace: [],
     scopeImpact: 'Deferred by latest roadmap to V3 onward.',
     evidence: []
   }
