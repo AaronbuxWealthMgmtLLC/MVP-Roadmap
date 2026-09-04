@@ -1,4 +1,12 @@
-import { features, horizons, readinessStages, sourceDocs, sourceRepositories } from '../data/product-context.js';
+import {
+  features,
+  horizons,
+  readinessStages,
+  roadmapRollup,
+  scopeHealth,
+  sourceDocs,
+  sourceRepositories
+} from '../data/product-context.js';
 
 const tabs = document.querySelector('#horizonTabs');
 const description = document.querySelector('#horizonDescription');
@@ -6,6 +14,8 @@ const list = document.querySelector('#featureList');
 const dialog = document.querySelector('#sourcesDialog');
 const sourceList = document.querySelector('#sourceList');
 const sourceButton = document.querySelector('#sourcesButton');
+const roadmapRollupElement = document.querySelector('#roadmapRollup');
+const scopeHealthElement = document.querySelector('#scopeHealth');
 let activeHorizon = 'now';
 
 function escapeHtml(value = '') {
@@ -35,22 +45,11 @@ function readinessLabel(feature) {
 function summaryContent(feature) {
   return featureSummaryOverrides[feature.id] ?? {
     label: feature.title,
-    currentFocus: feature.discoveryQuestion,
+    currentFocus: feature.readinessStage === 'THESIS' && !feature.discoveryTrace.length
+      ? 'Not started'
+      : feature.discoveryQuestion,
     userReadyExit: feature.exitCriterion
   };
-}
-
-function legacyEvidenceMarkup(items) {
-  if (!items.length) return '<p>No static project evidence added yet. This is where GitHub commits / PRs / project updates will later appear.</p>';
-  return `<div class="evidence-list">${items.map(item => `
-    <article class="evidence-item">
-      <div class="evidence-type ${escapeHtml(item.type)}">${escapeHtml(item.type)}</div>
-      <div>
-        <div class="evidence-title">${escapeHtml(item.title)}</div>
-        <div class="evidence-detail">${escapeHtml(item.detail)}</div>
-        <div class="evidence-source">Evidence: ${escapeHtml(item.source)}</div>
-      </div>
-  </article>`).join('')}</div>`;
 }
 
 function commitUrl(evidence) {
@@ -141,9 +140,21 @@ function discoveryTraceMarkup(items) {
 }
 
 function featureEvidenceMarkup(feature) {
-  return feature.discoveryTrace?.length
-    ? discoveryTraceMarkup(feature.discoveryTrace)
-    : legacyEvidenceMarkup(feature.evidence);
+  if (feature.discoveryTrace?.length) return discoveryTraceMarkup(feature.discoveryTrace);
+
+  const historyStatus = feature.evidence.length
+    ? 'No dated discovery trace has been curated yet.'
+    : 'No implementation evidence yet.';
+  const discoveryStatus = feature.readinessStage === 'THESIS'
+    ? 'Not started'
+    : 'Current question';
+
+  return `<div class="empty-discovery-state">
+    <span>Current discovery</span>
+    <strong>${escapeHtml(discoveryStatus)}</strong>
+    <p>${escapeHtml(feature.discoveryQuestion)}</p>
+    <p class="empty-evidence-note">${escapeHtml(historyStatus)}</p>
+  </div>`;
 }
 
 function featureMarkup(feature) {
@@ -171,14 +182,37 @@ function featureMarkup(feature) {
     <div class="feature-detail">
       <section class="evidence-section"><h3>How ${escapeHtml(summary.label)} evolved</h3>${featureEvidenceMarkup(feature)}</section>
       <div class="detail-grid">
+        <section class="detail-block"><h3>Roadmap horizon</h3><p>${escapeHtml(feature.horizon.toUpperCase())}</p></section>
+        <section class="detail-block"><h3>User job</h3><p>${escapeHtml(feature.userJob)}</p></section>
         <section class="detail-block"><h3>Minimum viable behavior</h3><p>${escapeHtml(feature.minimumBehavior)}</p></section>
-        <section class="detail-block"><h3>Solution-discovery question</h3><p>${escapeHtml(feature.discoveryQuestion)}</p></section>
+        <section class="detail-block"><h3>Current discovery question</h3><p>${escapeHtml(feature.discoveryQuestion)}</p></section>
         <section class="detail-block"><h3>Exit criterion</h3><p>${escapeHtml(feature.exitCriterion)}</p></section>
         <section class="detail-block scope-note"><h3>Scope impact</h3><p>${escapeHtml(feature.scopeImpact)}</p></section>
       </div>
       <section class="detail-block" style="margin-top:14px"><h3>Hard non-scope</h3><div class="chips">${feature.nonScope.map(item => `<span class="chip">${escapeHtml(item)}</span>`).join('')}</div></section>
     </div>
   </article>`;
+}
+
+function readinessRollupMarkup(rollup) {
+  return `<div class="rollup-heading">${escapeHtml(rollup.label)}</div>
+    <div class="readiness-rollup-list">${rollup.items.map(item => `
+      <div class="rollup-row">
+        <span>${escapeHtml(item.label)}</span>
+        <strong class="rollup-readiness">${escapeHtml(item.readinessStage.replaceAll('_', ' '))}</strong>
+      </div>`).join('')}
+    </div>`;
+}
+
+function scopeHealthMarkup(summary) {
+  return `<div class="rollup-heading">${escapeHtml(summary.label)}</div>
+    <div class="scope-health-list">${summary.items.map(item => `
+      <div class="rollup-row">
+        <span>${escapeHtml(item.label)}</span>
+        <strong class="scope-health-value">${escapeHtml(item.value)}</strong>
+      </div>`).join('')}
+    </div>
+    <p class="rollup-note">Static product update; not inferred from Git activity.</p>`;
 }
 
 function render() {
@@ -195,5 +229,7 @@ function render() {
 }
 
 sourceList.innerHTML = sourceDocs.map(doc => `<article class="source-item"><a href="${encodeURI(doc.path)}" target="_blank" rel="noopener">${escapeHtml(doc.label)}</a><p>${escapeHtml(doc.note)}</p></article>`).join('');
+roadmapRollupElement.innerHTML = readinessRollupMarkup(roadmapRollup);
+scopeHealthElement.innerHTML = scopeHealthMarkup(scopeHealth);
 sourceButton.addEventListener('click', () => dialog.showModal());
 render();

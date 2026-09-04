@@ -68,6 +68,32 @@ export const sourceRepositories = {
   }
 };
 
+// v0.2 rollups are explicitly curated product data. They are not calculated
+// from commit counts or inferred from discovery-trace activity.
+export const roadmapRollup = {
+  label: 'NOW — COMMERCIAL V1',
+  items: [
+    { label: 'Portfolio Builder', readinessStage: 'USER_READY' },
+    { label: 'Asset Selection', readinessStage: 'BEHAVIOR_REFINING' },
+    { label: 'Assess Fit', readinessStage: 'BEHAVIOR_REFINING' },
+    { label: 'What-If', readinessStage: 'WORKING' },
+    { label: 'Portfolio Analyzer', readinessStage: 'WORKING' },
+    { label: 'Risk & Diversification', readinessStage: 'WORKING' },
+    { label: 'Market Context', readinessStage: 'THESIS' },
+    { label: 'Review Alerts', readinessStage: 'THESIS' }
+  ]
+};
+
+export const scopeHealth = {
+  label: 'THIS WEEK',
+  items: [
+    { label: 'Committed MVP features added', value: 0 },
+    { label: 'Behavior refinements', value: 2 },
+    { label: 'Features moved toward User Ready', value: 1 },
+    { label: 'New capabilities deferred', value: 3 }
+  ]
+};
+
 /**
  * discoveryTrace item contract:
  * {
@@ -339,8 +365,8 @@ export const features = [
     discoveryQuestion: 'Which consequences must be visible for the simulation to change a user decision?',
     exitCriterion: 'The user can answer what materially changed and what tradeoff they accepted.',
     nonScope: ['Sophisticated optimizer', 'Institutional Monte Carlo', 'Predictive guarantees'],
-    stage: 2,
-    readinessStage: 'EXERCISED',
+    stage: 1,
+    readinessStage: 'WORKING',
     discoveryTrace: [],
     scopeImpact: 'None — committed MVP1 feature.',
     evidence: [{ type: 'IMPLEMENT', title: 'Decision-support foundation being reused', detail: 'Current asset-selection work is establishing the before/after and tradeoff primitives needed by What-If.', source: 'Current project dependency' }]
@@ -384,8 +410,8 @@ export const features = [
     discoveryQuestion: 'How much personalization turns generic market news into useful portfolio intelligence?',
     exitCriterion: 'The user can answer what changed, which part of their system it relates to, and whether they need to review anything.',
     nonScope: ['News terminal', 'Price prediction', 'Trading signals'],
-    stage: 1,
-    readinessStage: 'WORKING',
+    stage: 0,
+    readinessStage: 'THESIS',
     discoveryTrace: [],
     scopeImpact: 'None — committed MVP1 feature.',
     evidence: []
@@ -414,8 +440,8 @@ export const features = [
     discoveryQuestion: 'What conditions genuinely deserve interruption?',
     exitCriterion: 'The user understands why they were alerted and what deserves review without being told to trade.',
     nonScope: ['Automatic trading', 'Generic engagement notifications'],
-    stage: 1,
-    readinessStage: 'WORKING',
+    stage: 0,
+    readinessStage: 'THESIS',
     discoveryTrace: [],
     scopeImpact: 'None — committed MVP1 feature.',
     evidence: []
@@ -499,5 +525,7 @@ export const features = [
 
 export const TRACKER_DATA = {
   sourceRepositories,
+  roadmapRollup,
+  scopeHealth,
   features
 };
