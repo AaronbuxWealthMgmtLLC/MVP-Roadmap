@@ -60,19 +60,32 @@ function commitUrl(evidence) {
 }
 
 function githubEvidenceMarkup(items) {
-  if (!items.length) return '<div class="evidence-source">Git evidence: awaiting confirmation</div>';
-
-  const links = items.map(item => {
+  const rows = items.map(item => {
     const repository = sourceRepositories[item.repositoryId];
     const url = commitUrl(item);
-    const label = `${repository?.label ?? item.repositoryId} · ${item.commitSha.slice(0, 7)} · ${item.commitDate} · ${item.commitMessage}`;
+    const shortSha = item.commitSha.slice(0, 7);
+    const shaMarkup = url
+      ? `<a href="${escapeHtml(url)}" target="_blank" rel="noopener" aria-label="View commit ${escapeHtml(shortSha)} in ${escapeHtml(repository.label)}">${escapeHtml(shortSha)}</a>`
+      : `<span>${escapeHtml(shortSha)}</span>`;
 
-    return url
-      ? `<div class="evidence-source"><a href="${escapeHtml(url)}" target="_blank" rel="noopener">${escapeHtml(label)}</a></div>`
-      : `<div class="evidence-source">${escapeHtml(label)} (unknown repository)</div>`;
+    return `<div class="github-evidence-row">
+      <time datetime="${escapeHtml(item.commitDate)}">${escapeHtml(formatMonthDay(item.commitDate))}</time>
+      <div class="github-evidence-sha">${shaMarkup}</div>
+      <div class="github-evidence-message">${escapeHtml(item.commitMessage)}</div>
+    </div>`;
   }).join('');
 
-  return `<details class="timeline-evidence"><summary>Supporting GitHub evidence (${items.length})</summary>${links}</details>`;
+  const body = items.length
+    ? rows
+    : '<p class="github-evidence-empty">No supporting commit recorded; the product date still needs confirmation.</p>';
+
+  return `<details class="timeline-evidence">
+    <summary><span>GitHub evidence</span><span class="evidence-chevron" aria-hidden="true">⌄</span></summary>
+    <div class="github-evidence-panel">
+      <div class="github-evidence-heading">GitHub evidence</div>
+      ${body}
+    </div>
+  </details>`;
 }
 
 function calendarDayValue(date) {
@@ -91,14 +104,17 @@ function elapsedLabel(previousDate, currentDate) {
   return `${days} ${days === 1 ? 'day' : 'days'} later`;
 }
 
-function displayStageDate(stageDate) {
-  if (!stageDate) return 'DATE PENDING';
-  const [year, month, day] = stageDate.split('-').map(Number);
+function formatMonthDay(date) {
+  const [year, month, day] = date.split('-').map(Number);
   return new Intl.DateTimeFormat('en-US', {
     month: 'short',
     day: 'numeric',
     timeZone: 'UTC'
-  }).format(new Date(Date.UTC(year, month - 1, day))).toUpperCase();
+  }).format(new Date(Date.UTC(year, month - 1, day)));
+}
+
+function displayStageDate(stageDate) {
+  return stageDate ? formatMonthDay(stageDate).toUpperCase() : 'DATE PENDING';
 }
 
 function discoveryTraceMarkup(items) {
@@ -114,6 +130,10 @@ function discoveryTraceMarkup(items) {
           <h4>${escapeHtml(item.title)}</h4>
           <p>${escapeHtml(item.plainEnglish)}</p>
           <p class="timeline-significance">Why it matters: ${escapeHtml(item.significance)}</p>
+          <div class="timeline-scope-impact">
+            <span>Scope impact</span>
+            <strong>${escapeHtml(item.scopeImpact === 'none' ? 'NO CHANGE TO MVP SCOPE' : item.scopeImpact.toUpperCase())}</strong>
+          </div>
           ${githubEvidenceMarkup(item.githubEvidence)}
         </div>
       </article>`;

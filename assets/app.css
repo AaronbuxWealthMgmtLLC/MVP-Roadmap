@@ -92,13 +92,24 @@ main { max-width: 1180px; margin: 0 auto; padding: 0 24px 56px; }
 .timeline-content h4 { margin: 4px 0 3px; font-size: 17px; line-height: 1.35; }
 .timeline-content p { margin: 0; font-size: 14px; line-height: 1.55; }
 .timeline-content .timeline-significance { margin-top: 5px; color: var(--muted); font-size: 13px; }
+.timeline-scope-impact { display: grid; gap: 2px; margin-top: 12px; }
+.timeline-scope-impact span { color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: .04em; }
+.timeline-scope-impact strong { color: var(--text); font-size: 11px; letter-spacing: .08em; }
 .timeline-elapsed { margin: 8px 0 8px 87px; color: var(--muted); font-size: 12px; font-weight: 700; }
 .timeline-elapsed span { color: var(--border); display: inline-block; font-size: 18px; margin-right: 8px; vertical-align: -1px; }
-.timeline-evidence { margin-top: 8px; }
-.timeline-evidence summary { color: var(--muted); cursor: pointer; font-size: 12px; }
-.timeline-evidence .evidence-source { padding-left: 14px; }
-.timeline-evidence a { color: var(--accent); text-decoration: none; }
-.timeline-evidence a:hover { text-decoration: underline; }
+.timeline-evidence { border-top: 1px solid var(--border); margin-top: 12px; padding-top: 9px; }
+.timeline-evidence summary { align-items: center; color: var(--muted); cursor: pointer; display: flex; font-size: 12px; font-weight: 700; gap: 7px; list-style: none; width: fit-content; }
+.timeline-evidence summary::-webkit-details-marker { display: none; }
+.evidence-chevron { display: inline-block; font-size: 16px; line-height: 1; transition: transform .2s ease; }
+.timeline-evidence[open] .evidence-chevron { transform: rotate(180deg); }
+.github-evidence-panel { background: var(--card-2); border-radius: 10px; display: grid; gap: 2px; margin-top: 9px; padding: 12px; }
+.github-evidence-heading { font-size: 12px; font-weight: 800; margin-bottom: 5px; }
+.github-evidence-row { align-items: baseline; display: grid; grid-template-columns: 64px 70px minmax(0, 1fr); gap: 10px; padding: 5px 0; }
+.github-evidence-row time, .github-evidence-sha { color: var(--muted); font-size: 12px; }
+.github-evidence-sha a { color: var(--accent); font-family: ui-monospace, SFMono-Regular, Consolas, monospace; text-decoration: none; }
+.github-evidence-sha a:hover { text-decoration: underline; }
+.github-evidence-message { font-size: 13px; line-height: 1.4; }
+.github-evidence-empty { color: var(--muted); font-size: 13px; margin: 0; }
 .sources-dialog { width: min(760px, calc(100% - 28px)); max-height: 85%; background: var(--panel); color: var(--text); border: 1px solid var(--border); border-radius: 18px; padding: 0; }
 .sources-dialog::backdrop { background: rgba(0,0,0,.7); }
 .dialog-inner { padding: 20px; }
@@ -117,4 +128,5 @@ code { color: var(--accent); }
   .evidence-item { grid-template-columns: 1fr; }
   .timeline-entry { grid-template-columns: 64px 18px minmax(0, 1fr); gap: 7px; }
   .timeline-elapsed { margin-left: 70px; }
+  .github-evidence-row { grid-template-columns: 54px 62px minmax(0, 1fr); gap: 7px; }
 }
