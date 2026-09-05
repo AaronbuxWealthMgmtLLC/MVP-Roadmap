@@ -142,7 +142,8 @@ export const timelineCalendar = {
  *   exitCriterion: string,
  *   completion: {
  *     date: 'YYYY-MM-DD' | null,
- *     status: 'not-yet-frozen'
+ *     status: 'not-yet-frozen' | 'minimum-behavior-complete',
+ *     evidence: [] (required and non-empty when minimum behavior is complete)
  *   },
  *   productEvolution: [{
  *     date: 'YYYY-MM-DD' | null,
@@ -190,6 +191,38 @@ export const features = [
     nonScope: ['Optimization engine', 'Automated investing', 'Continuous auto-management'],
     stage: 6,
     readinessStage: 'USER_READY',
+    committedScope: 'A recommended portfolio system with understandable sleeve roles and reasoning.',
+    currentBehavior: 'Recommended portfolio system available',
+    currentQuestion: 'What is the minimum recommendation structure and explanation that creates confidence?',
+    completion: {
+      date: null,
+      status: 'not-yet-frozen',
+      evidence: []
+    },
+    productEvolution: [
+      {
+        date: null,
+        dateStatus: 'needs-product-owner-confirmation',
+        marker: 'commitment',
+        title: 'Portfolio Builder / Recommended System committed',
+        behaviorBefore: 'The MVP committed to giving users an understandable recommended investing structure.',
+        finding: 'No dated product-decision record has been curated for the original commitment.',
+        consequence: 'The feature remains part of the committed NOW portfolio.',
+        scopeImpact: 'none',
+        evidence: []
+      },
+      {
+        date: null,
+        dateStatus: 'needs-product-owner-confirmation',
+        marker: 'behavior',
+        title: 'Recommended portfolio system available',
+        behaviorBefore: 'Profile inputs produce a recommended portfolio system with sleeve roles and reasoning.',
+        finding: 'The existing tracker records that the recommendation and explanation behavior has been exercised, but does not establish an objective product-event date.',
+        consequence: 'Users can receive the portfolio structure that contextualizes the other NOW features.',
+        scopeImpact: 'none',
+        evidence: []
+      }
+    ],
     discoveryTrace: [],
     scopeImpact: 'None — committed MVP capability.',
     evidence: [
@@ -225,7 +258,8 @@ export const features = [
     readinessStage: 'BEHAVIOR_REFINING',
     completion: {
       date: null,
-      status: 'not-yet-frozen'
+      status: 'not-yet-frozen',
+      evidence: []
     },
     productEvolution: [
       {
@@ -392,7 +426,7 @@ export const features = [
       {
         date: null,
         dateStatus: 'needs-product-owner-confirmation',
-        marker: 'commitment',
+        marker: 'finding',
         title: 'Organize candidates by useful contribution',
         behaviorBefore: 'Eligible candidates are presented primarily as a flat catalogue.',
         finding: 'Users should begin with the contribution they want the sleeve to make rather than compare a long list of similar securities.',
@@ -615,6 +649,27 @@ export const features = [
     nonScope: ['Sophisticated optimizer', 'Institutional Monte Carlo', 'Predictive guarantees'],
     stage: 1,
     readinessStage: 'WORKING',
+    committedScope: 'A before-and-after comparison that explains the material consequence of a contemplated portfolio change.',
+    currentBehavior: 'No standalone What-If behavior is evidenced yet; shared decision-support foundations exist.',
+    currentQuestion: 'Which consequences must be visible for the simulation to change a user decision?',
+    completion: {
+      date: null,
+      status: 'not-yet-frozen',
+      evidence: []
+    },
+    productEvolution: [
+      {
+        date: null,
+        dateStatus: 'needs-product-owner-confirmation',
+        marker: 'commitment',
+        title: 'What-If comparison committed',
+        behaviorBefore: 'The MVP committed to helping users understand a contemplated portfolio change before acting.',
+        finding: 'The tracker records shared decision-support foundations, not a dated standalone What-If behavior.',
+        consequence: 'The next product milestone must demonstrate the minimum understandable before-and-after comparison.',
+        scopeImpact: 'none',
+        evidence: []
+      }
+    ],
     discoveryTrace: [],
     scopeImpact: 'None — committed MVP1 feature.',
     evidence: [{ type: 'IMPLEMENT', title: 'Decision-support foundation being reused', detail: 'Current asset-selection work is establishing the before/after and tradeoff primitives needed by What-If.', source: 'Current project dependency' }]
@@ -630,6 +685,27 @@ export const features = [
     nonScope: ['Institutional analytics terminal', 'Tax optimizer', 'Execution'],
     stage: 1,
     readinessStage: 'WORKING',
+    committedScope: 'Explain portfolio structure, concentration, duplication and missing exposure in language the user can act on.',
+    currentBehavior: 'No dated Portfolio Analyzer behavior has been curated yet.',
+    currentQuestion: 'What analysis is minimally useful rather than merely descriptive?',
+    completion: {
+      date: null,
+      status: 'not-yet-frozen',
+      evidence: []
+    },
+    productEvolution: [
+      {
+        date: null,
+        dateStatus: 'needs-product-owner-confirmation',
+        marker: 'commitment',
+        title: 'Portfolio Analyzer committed',
+        behaviorBefore: 'The MVP committed to helping users understand what their portfolio actually contains and why it matters.',
+        finding: 'No dated product behavior or implementation evidence has been curated for this feature.',
+        consequence: 'The committed user job remains visible without implying implementation progress.',
+        scopeImpact: 'none',
+        evidence: []
+      }
+    ],
     discoveryTrace: [],
     scopeImpact: 'None — committed MVP1 feature.',
     evidence: []
@@ -645,6 +721,27 @@ export const features = [
     nonScope: ['Guarantees', 'Predictive risk claims', 'Automatic remediation'],
     stage: 1,
     readinessStage: 'WORKING',
+    committedScope: 'Explain meaningful portfolio vulnerabilities and whether they warrant review.',
+    currentBehavior: 'No dated Risk & Diversification behavior has been curated yet.',
+    currentQuestion: 'Which signals are credible and actionable enough to warrant attention?',
+    completion: {
+      date: null,
+      status: 'not-yet-frozen',
+      evidence: []
+    },
+    productEvolution: [
+      {
+        date: null,
+        dateStatus: 'needs-product-owner-confirmation',
+        marker: 'commitment',
+        title: 'Risk & Diversification insights committed',
+        behaviorBefore: 'The MVP committed to showing users where their portfolio may be vulnerable and whether it deserves attention.',
+        finding: 'No dated product behavior or implementation evidence has been curated for this feature.',
+        consequence: 'The committed user job remains visible without implying implementation progress.',
+        scopeImpact: 'none',
+        evidence: []
+      }
+    ],
     discoveryTrace: [],
     scopeImpact: 'None — committed MVP1 feature.',
     evidence: []
@@ -660,6 +757,27 @@ export const features = [
     nonScope: ['News terminal', 'Price prediction', 'Trading signals'],
     stage: 0,
     readinessStage: 'THESIS',
+    committedScope: 'Connect a relevant market change to the part of the user\'s portfolio it affects and whether review is warranted.',
+    currentBehavior: 'Not started',
+    currentQuestion: 'How much personalization turns generic market news into useful portfolio intelligence?',
+    completion: {
+      date: null,
+      status: 'not-yet-frozen',
+      evidence: []
+    },
+    productEvolution: [
+      {
+        date: null,
+        dateStatus: 'needs-product-owner-confirmation',
+        marker: 'commitment',
+        title: 'Market Context committed',
+        behaviorBefore: 'The MVP committed to connecting relevant market changes to the user\'s portfolio context.',
+        finding: 'No product behavior or implementation evidence exists in the tracker yet.',
+        consequence: 'The feature remains at thesis stage.',
+        scopeImpact: 'none',
+        evidence: []
+      }
+    ],
     discoveryTrace: [],
     scopeImpact: 'None — committed MVP1 feature.',
     evidence: []
@@ -675,6 +793,27 @@ export const features = [
     nonScope: ['Productivity tracker', 'Complex time accounting'],
     stage: 1,
     readinessStage: 'WORKING',
+    committedScope: 'Explain how much monitoring attention a strategy deserves, when to review it and why.',
+    currentBehavior: 'No dated Effort / Review Cadence behavior has been curated yet.',
+    currentQuestion: 'What representation makes “effort” useful rather than abstract metadata?',
+    completion: {
+      date: null,
+      status: 'not-yet-frozen',
+      evidence: []
+    },
+    productEvolution: [
+      {
+        date: null,
+        dateStatus: 'needs-product-owner-confirmation',
+        marker: 'commitment',
+        title: 'Effort / Review Cadence committed',
+        behaviorBefore: 'The delivery roadmap committed to explaining the attention and review cadence a strategy deserves.',
+        finding: 'No dated product behavior or implementation evidence has been curated for this feature.',
+        consequence: 'The committed user job remains visible without implying implementation progress.',
+        scopeImpact: 'none',
+        evidence: []
+      }
+    ],
     discoveryTrace: [],
     scopeImpact: 'None — committed delivery-roadmap behavior.',
     evidence: []
@@ -690,6 +829,27 @@ export const features = [
     nonScope: ['Automatic trading', 'Generic engagement notifications'],
     stage: 0,
     readinessStage: 'THESIS',
+    committedScope: 'Alert users only when a clear condition deserves review, with the reason and affected portfolio area.',
+    currentBehavior: 'Not started',
+    currentQuestion: 'What conditions genuinely deserve interruption?',
+    completion: {
+      date: null,
+      status: 'not-yet-frozen',
+      evidence: []
+    },
+    productEvolution: [
+      {
+        date: null,
+        dateStatus: 'needs-product-owner-confirmation',
+        marker: 'commitment',
+        title: 'Review Alerts committed',
+        behaviorBefore: 'The MVP committed to telling users when a portfolio condition genuinely deserves attention.',
+        finding: 'No product behavior or implementation evidence exists in the tracker yet.',
+        consequence: 'The feature remains at thesis stage.',
+        scopeImpact: 'none',
+        evidence: []
+      }
+    ],
     discoveryTrace: [],
     scopeImpact: 'None — committed MVP1 feature.',
     evidence: []

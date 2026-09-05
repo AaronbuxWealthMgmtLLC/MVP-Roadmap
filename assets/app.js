@@ -158,8 +158,32 @@ const todayDate = [
   String(today.getDate()).padStart(2, '0')
 ].join('-');
 
+function completionGatePassed(feature) {
+  return feature.completion?.status === 'minimum-behavior-complete'
+    && /^\d{4}-\d{2}-\d{2}$/.test(feature.completion.date ?? '')
+    && Array.isArray(feature.completion.evidence)
+    && feature.completion.evidence.length > 0;
+}
+
+function productEvolutionEvents(feature) {
+  const events = (feature.productEvolution ?? []).filter(event => event.marker !== 'completion');
+  if (!completionGatePassed(feature)) return events;
+
+  return [...events, {
+    date: feature.completion.date,
+    marker: 'completion',
+    showInHorizonTimeline: feature.completion.showInHorizonTimeline === true,
+    title: 'Minimum behavior complete',
+    behaviorBefore: feature.exitCriterion,
+    finding: 'The recorded completion evidence explicitly confirms that the exit criterion was satisfied.',
+    consequence: 'The feature has reached its committed minimum behavior.',
+    scopeImpact: 'none',
+    evidence: feature.completion.evidence
+  }];
+}
+
 function productTimelineEvents(feature) {
-  return (feature.productEvolution ?? []).map((event, eventIndex) => ({
+  return productEvolutionEvents(feature).map((event, eventIndex) => ({
     ...event,
     eventIndex,
     featureId: feature.id,
@@ -270,15 +294,16 @@ function productTraceMarkup(items) {
 function productEvolutionViewsMarkup(feature) {
   const events = productTimelineEvents(feature);
   const viewId = `evolution-${feature.id}`;
+  const timelineIsDefault = plottableTimelineEvents(events, sharedTimelineAxis()).length > 0;
   return `<div class="evolution-views" data-feature-id="${escapeHtml(feature.id)}">
     <div class="evolution-view-switch" role="tablist" aria-label="Product evolution view">
-      <button type="button" class="evolution-view-tab" role="tab" aria-selected="true" aria-controls="${escapeHtml(viewId)}-timeline" data-view="timeline">Timeline</button>
-      <button type="button" class="evolution-view-tab" role="tab" aria-selected="false" aria-controls="${escapeHtml(viewId)}-trace" data-view="trace">Trace</button>
+      <button type="button" class="evolution-view-tab" role="tab" aria-selected="${timelineIsDefault}" aria-controls="${escapeHtml(viewId)}-timeline" data-view="timeline">Timeline</button>
+      <button type="button" class="evolution-view-tab" role="tab" aria-selected="${!timelineIsDefault}" aria-controls="${escapeHtml(viewId)}-trace" data-view="trace">Trace</button>
     </div>
-    <div class="evolution-view-panel" id="${escapeHtml(viewId)}-timeline" role="tabpanel" data-view-panel="timeline">
-      ${calendarTimelineMarkup(events, { variant: 'expanded' })}
+    <div class="evolution-view-panel" id="${escapeHtml(viewId)}-timeline" role="tabpanel" data-view-panel="timeline"${timelineIsDefault ? '' : ' hidden'}>
+      ${calendarTimelineMarkup(events, { variant: 'expanded' }) || '<p class="undated-timeline-note">No dated product milestones yet. The trace preserves known commitments without inventing dates.</p>'}
     </div>
-    <div class="evolution-view-panel" id="${escapeHtml(viewId)}-trace" role="tabpanel" data-view-panel="trace" hidden>
+    <div class="evolution-view-panel" id="${escapeHtml(viewId)}-trace" role="tabpanel" data-view-panel="trace"${timelineIsDefault ? ' hidden' : ''}>
       ${productTraceMarkup(events)}
     </div>
   </div>`;
@@ -402,7 +427,7 @@ function horizonTimelineMarkup(horizonId) {
 
 function openMilestone(featureId, eventIndex) {
   const feature = features.find(item => item.id === featureId);
-  const event = feature?.productEvolution?.[eventIndex];
+  const event = feature ? productTimelineEvents(feature)[eventIndex] : null;
   if (!event) return;
 
   milestoneTitle.textContent = event.title;
