@@ -21,20 +21,20 @@ npm run build
 
 AWS Amplify uses `amplify.yml` and publishes `dist/`.
 
-## Hosting under `/mvp`
+## Hosting under `/tracker`
 
-The production build defaults to `/mvp` and writes the deployable tracker to
-`dist/mvp/`. Asset and source-document references are relative to that folder.
-The generated base URL keeps those references under `/mvp/`, including when a
+The production build defaults to `/tracker` and writes the deployable tracker to
+`dist/tracker/`. Asset and source-document references are relative to that folder.
+The generated base URL keeps those references under `/tracker/`, including when a
 future client-side route is served through an index rewrite. The canonical
-production address is `https://www.aaronbux.com/mvp`.
+production address is `https://mvp-roadmap.aaronbux.com/tracker`.
 
 The defaults live in `package.json`. A deployment can override them with the
 `TRACKER_BASE_PATH` and `TRACKER_CANONICAL_URL` environment variables.
 
-The HTML normalizes `/mvp` to `/mvp/` when the host serves the index without
+The HTML normalizes `/tracker` to `/tracker/` when the host serves the index without
 performing its own directory redirect. If client-side feature routes are added
-later, configure the host to rewrite `/mvp/*` to `/mvp/index.html` with a 200
+later, configure the host to rewrite `/tracker/*` to `/tracker/index.html` with a 200
 response; the app does not currently introduce client-side routes.
 
 ## Architecture

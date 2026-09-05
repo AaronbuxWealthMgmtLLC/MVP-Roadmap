@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "config": {
-    "trackerBasePath": "/mvp",
-    "trackerCanonicalUrl": "https://www.aaronbux.com/mvp"
+    "trackerBasePath": "/tracker",
+    "trackerCanonicalUrl": "https://mvp-roadmap.aaronbux.com/tracker"
   },
   "scripts": {
     "build": "node scripts/build.mjs",
