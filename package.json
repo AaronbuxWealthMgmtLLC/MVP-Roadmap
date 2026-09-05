@@ -3,6 +3,10 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "config": {
+    "trackerBasePath": "/mvp",
+    "trackerCanonicalUrl": "https://www.aaronbux.com/mvp"
+  },
   "scripts": {
     "build": "node scripts/build.mjs",
     "check": "node --check assets/app.js && node --check data/product-context.js && node --check scripts/build.mjs"

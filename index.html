@@ -4,8 +4,20 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="description" content="AaronBux MVP readiness and solution-discovery tracker" />
+  <meta name="application-base-path" content="/mvp" />
+  <meta property="og:url" content="https://www.aaronbux.com/mvp" />
+  <base href="./" />
+  <link rel="canonical" href="https://www.aaronbux.com/mvp" />
   <title>AaronBux MVP Readiness Tracker</title>
-  <link rel="stylesheet" href="assets/app.css" />
+  <script>
+    (() => {
+      const configuredPath = document.querySelector('meta[name="application-base-path"]')?.content.replace(/\/$/, '');
+      if (configuredPath && window.location.pathname === configuredPath) {
+        window.location.replace(`${configuredPath}/${window.location.search}${window.location.hash}`);
+      }
+    })();
+  </script>
+  <link rel="stylesheet" href="./assets/app.css" />
 </head>
 <body>
   <header class="topbar">
@@ -62,6 +74,6 @@
     </form>
   </dialog>
 
-  <script type="module" src="assets/app.js"></script>
+  <script type="module" src="./assets/app.js"></script>
 </body>
 </html>

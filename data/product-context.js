@@ -173,10 +173,10 @@ export const timelineCalendar = {
  */
 
 export const sourceDocs = [
-  { id: 'mvp1', label: 'April MVP1', path: 'docs/source-of-truth/april-mvp1.pdf', note: 'Insights/planning product; clarity, confidence and decision support; no execution.' },
-  { id: 'mvp2', label: 'April MVP2', path: 'docs/source-of-truth/april-mvp2.pdf', note: 'Execution + premium intelligence concept.' },
-  { id: 'roadmap-april', label: 'April staged roadmap', path: 'docs/source-of-truth/april-mvp-roadmap-vf2.pdf', note: 'Earlier progression from educational beta through execution and premium AI.' },
-  { id: 'roadmap-latest', label: 'Latest delivery roadmap', path: 'docs/source-of-truth/divya-roadmap-mvp1-mvp2-delivery.docx', note: 'Current sequencing toward September commercial V1, Oct–Dec customer validation, brokerage from V3 onward.' }
+  { id: 'mvp1', label: 'April MVP1', path: './docs/source-of-truth/april-mvp1.pdf', note: 'Insights/planning product; clarity, confidence and decision support; no execution.' },
+  { id: 'mvp2', label: 'April MVP2', path: './docs/source-of-truth/april-mvp2.pdf', note: 'Execution + premium intelligence concept.' },
+  { id: 'roadmap-april', label: 'April staged roadmap', path: './docs/source-of-truth/april-mvp-roadmap-vf2.pdf', note: 'Earlier progression from educational beta through execution and premium AI.' },
+  { id: 'roadmap-latest', label: 'Latest delivery roadmap', path: './docs/source-of-truth/divya-roadmap-mvp1-mvp2-delivery.docx', note: 'Current sequencing toward September commercial V1, Oct–Dec customer validation, brokerage from V3 onward.' }
 ];
 
 export const features = [
