@@ -101,6 +101,10 @@ export const scopeHealth = {
   ]
 };
 
+export const timelineCalendar = {
+  startDate: '2026-08-20'
+};
+
 /**
  * discoveryTrace item contract:
  * {
@@ -145,6 +149,7 @@ export const scopeHealth = {
  *     date: 'YYYY-MM-DD' | null,
  *     dateStatus: 'needs-product-owner-confirmation' (only when date is null),
  *     marker: one of productEvolutionMarkers,
+ *     showInHorizonTimeline: boolean (optional; product-owner curated),
  *     title: string,
  *     behaviorBefore: string,
  *     finding: string,
@@ -238,6 +243,7 @@ export const features = [
       {
         date: '2026-08-29',
         marker: 'behavior',
+        showInHorizonTimeline: true,
         title: 'Curated securities + four fit outcomes available',
         behaviorBefore: 'Users could browse securities curated for a sleeve, select one, and receive Add, Replace, Redundant or Do not add.',
         finding: 'This created the first working, user-visible behavior that could be exercised against hypothetical sleeve holdings.',
@@ -261,6 +267,7 @@ export const features = [
       {
         date: '2026-09-03',
         marker: 'finding',
+        showInHorizonTimeline: true,
         title: 'Valid alternatives often looked redundant',
         behaviorBefore: 'Once a reasonable holding existed, another eligible candidate in the same category was often reduced to the Redundant outcome.',
         finding: 'The catalogue-wide audit later measured 18,548 Redundant results across 20,218 Phase-2 scenarios, including candidates that still changed portfolio exposure.',
@@ -278,7 +285,8 @@ export const features = [
       {
         date: '2026-09-03',
         marker: 'finding',
-        title: 'Fit alone is not enough',
+        showInHorizonTimeline: true,
+        title: 'Fit alone isn\'t enough',
         behaviorBefore: 'Assess Fit answered which structural label applied to a candidate.',
         finding: 'A user also needed to understand what would change, what would overlap, which tradeoffs followed and which reasonable choices remained.',
         consequence: 'The product decision changed Assess Fit from a terminal classification into portfolio-change decision support.',
@@ -295,6 +303,7 @@ export const features = [
       {
         date: '2026-09-03',
         marker: 'behavior',
+        showInHorizonTimeline: true,
         title: 'Portfolio-change explanation added',
         behaviorBefore: 'The product primarily assigned a fit label to the selected security.',
         finding: 'Overlap could be meaningful evidence without being a complete verdict, and more than one action could remain reasonable.',
@@ -736,5 +745,6 @@ export const TRACKER_DATA = {
   sourceRepositories,
   roadmapRollup,
   scopeHealth,
+  timelineCalendar,
   features
 };

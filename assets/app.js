@@ -5,7 +5,8 @@ import {
   roadmapRollup,
   scopeHealth,
   sourceDocs,
-  sourceRepositories
+  sourceRepositories,
+  timelineCalendar
 } from '../data/product-context.js';
 
 const tabs = document.querySelector('#horizonTabs');
@@ -16,6 +17,10 @@ const sourceList = document.querySelector('#sourceList');
 const sourceButton = document.querySelector('#sourcesButton');
 const roadmapRollupElement = document.querySelector('#roadmapRollup');
 const scopeHealthElement = document.querySelector('#scopeHealth');
+const horizonTimelineElement = document.querySelector('#horizonTimeline');
+const milestoneDialog = document.querySelector('#milestoneDialog');
+const milestoneTitle = document.querySelector('#milestoneTitle');
+const milestoneBody = document.querySelector('#milestoneBody');
 let activeHorizon = 'now';
 
 function escapeHtml(value = '') {
@@ -24,10 +29,6 @@ function escapeHtml(value = '') {
 
 function stageName(stage) {
   return readinessStages[Math.max(0, Math.min(stage, readinessStages.length - 1))];
-}
-
-function progressMarkup(stage) {
-  return readinessStages.map((_, i) => `<span class="progress-segment ${i < stage ? 'done' : i === stage ? 'current' : ''}"></span>`).join('');
 }
 
 const featureSummaryOverrides = {
@@ -42,9 +43,10 @@ function readinessLabel(feature) {
 
 function summaryContent(feature) {
   const overrides = featureSummaryOverrides[feature.id] ?? {};
+  const currentMilestone = feature.productEvolution?.at(-1);
   return {
     label: overrides.label ?? feature.title,
-    currentFocus: feature.currentQuestion ?? (feature.readinessStage === 'THESIS' && !feature.discoveryTrace.length
+    currentFocus: currentMilestone?.title ?? feature.currentQuestion ?? (feature.readinessStage === 'THESIS' && !feature.discoveryTrace.length
       ? 'Not started'
       : feature.discoveryQuestion),
     userReadyExit: feature.exitCriterion
@@ -124,7 +126,6 @@ function discoveryTraceMarkup(items) {
         <time class="timeline-date" ${item.stageDate ? `datetime="${escapeHtml(item.stageDate)}"` : ''}>${escapeHtml(displayStageDate(item.stageDate))}</time>
         <div class="timeline-rail" aria-hidden="true"><span class="timeline-dot"></span></div>
         <div class="timeline-content">
-          <div class="timeline-type ${escapeHtml(item.type)}">${escapeHtml(item.type)}</div>
           <h4>${escapeHtml(item.title)}</h4>
           <p>${escapeHtml(item.plainEnglish)}</p>
           <p class="timeline-significance">Why it matters: ${escapeHtml(item.significance)}</p>
@@ -142,8 +143,86 @@ const productEvolutionGlyphs = {
   commitment: '○',
   behavior: '×',
   finding: '◆',
-  completion: '✓'
+  completion: '│'
 };
+
+const today = new Date();
+const todayDate = [
+  today.getFullYear(),
+  String(today.getMonth() + 1).padStart(2, '0'),
+  String(today.getDate()).padStart(2, '0')
+].join('-');
+
+function productTimelineEvents(feature) {
+  return (feature.productEvolution ?? []).map((event, eventIndex) => ({
+    ...event,
+    eventIndex,
+    featureId: feature.id,
+    featureTitle: feature.title
+  }));
+}
+
+function sharedTimelineAxis() {
+  const futureCommitments = features
+    .flatMap(productTimelineEvents)
+    .filter(event => event.date && event.date > todayDate && event.marker === 'commitment')
+    .map(event => event.date);
+
+  return {
+    startDate: timelineCalendar.startDate,
+    endDate: [todayDate, ...futureCommitments].sort().at(-1),
+    todayDate
+  };
+}
+
+function timelinePosition(date, axis) {
+  const start = calendarDayValue(axis.startDate);
+  const end = calendarDayValue(axis.endDate);
+  return ((calendarDayValue(date) - start) / (end - start)) * 100;
+}
+
+function plottableTimelineEvents(events, axis) {
+  return events
+    .filter(event => event.date)
+    .filter(event => event.date >= axis.startDate)
+    .filter(event => event.date <= axis.todayDate || event.marker === 'commitment')
+    .filter(event => event.date <= axis.endDate)
+    .sort((a, b) => a.date.localeCompare(b.date) || a.eventIndex - b.eventIndex);
+}
+
+function calendarTimelineMarkup(events, { variant = 'feature', includeFeatureName = false } = {}) {
+  const axis = sharedTimelineAxis();
+  const plottable = plottableTimelineEvents(events, axis);
+  if (!plottable.length) return '';
+
+  const lanesByDate = new Map();
+  const positioned = plottable.map(event => {
+    const lane = lanesByDate.get(event.date) ?? 0;
+    lanesByDate.set(event.date, lane + 1);
+    return { ...event, lane, position: timelinePosition(event.date, axis) };
+  });
+  const laneCount = Math.max(...positioned.map(event => event.lane)) + 1;
+  const todayPosition = timelinePosition(axis.todayDate, axis);
+
+  return `<div class="calendar-timeline calendar-timeline-${escapeHtml(variant)}" style="--timeline-lanes:${laneCount}">
+    <div class="calendar-axis-labels">
+      <time datetime="${escapeHtml(axis.startDate)}">${escapeHtml(displayStageDate(axis.startDate))}</time>
+      <time datetime="${escapeHtml(axis.endDate)}">${escapeHtml(displayStageDate(axis.endDate))}</time>
+    </div>
+    <div class="calendar-track">
+      <div class="calendar-axis-line" aria-hidden="true"></div>
+      <div class="calendar-today" style="left:${todayPosition.toFixed(4)}%"><span>TODAY</span></div>
+      ${positioned.map(event => {
+        const alignment = event.position > 72 ? 'align-right' : event.position < 20 ? 'align-left' : 'align-center';
+        const title = includeFeatureName ? `${event.featureTitle}: ${event.title}` : event.title;
+        return `<div class="calendar-event ${alignment}" style="left:${event.position.toFixed(4)}%;--event-lane:${event.lane}">
+          <button class="calendar-marker-button" type="button" data-feature-id="${escapeHtml(event.featureId)}" data-event-index="${event.eventIndex}" aria-label="Open ${escapeHtml(event.title)} milestone">${escapeHtml(productEvolutionGlyphs[event.marker])}</button>
+          <div class="calendar-event-label"><time datetime="${escapeHtml(event.date)}">${escapeHtml(formatMonthDay(event.date))}</time><span>${escapeHtml(title)}</span></div>
+        </div>`;
+      }).join('')}
+    </div>
+  </div>`;
+}
 
 function productEvolutionMarkup(items) {
   return `<div class="product-evolution-timeline">${items.map((item, index) => {
@@ -223,27 +302,22 @@ function featureEvidenceMarkup(feature) {
 
 function featureMarkup(feature) {
   const summary = summaryContent(feature);
+  const featureTimeline = calendarTimelineMarkup(productTimelineEvents(feature));
+  const detailId = `feature-${feature.id}-detail`;
   return `<article class="feature-card" data-feature-id="${escapeHtml(feature.id)}">
-    <button class="feature-summary" type="button" aria-expanded="false">
-      <div class="feature-title">${escapeHtml(summary.label).toUpperCase()}</div>
-      <div class="feature-summary-grid">
-        <div class="feature-summary-field">
-          <span>Current status</span>
-          <strong class="readiness-state">${escapeHtml(readinessLabel(feature))}</strong>
-        </div>
-        <div class="feature-summary-field">
-          <span>Current focus</span>
-          <strong>${escapeHtml(summary.currentFocus)}</strong>
-        </div>
-        <div class="feature-summary-field">
-          <span>Exit to User Ready</span>
-          <strong>${escapeHtml(summary.userReadyExit)}</strong>
-        </div>
+    <div class="feature-summary">
+      <div class="feature-card-heading">
+        <div class="feature-title">${escapeHtml(summary.label).toUpperCase()}</div>
+        <strong class="readiness-state">${escapeHtml(readinessLabel(feature))}</strong>
       </div>
-      <div class="progress-track" aria-hidden="true">${progressMarkup(feature.stage)}</div>
-      <div class="feature-expand-label"><span>See how we got here</span><span class="expand-arrow" aria-hidden="true">↓</span></div>
-    </button>
-    <div class="feature-detail">
+      <p class="feature-job">${escapeHtml(feature.userJob)}</p>
+      ${featureTimeline}
+      <div class="feature-summary-footer">
+        <div class="feature-current"><span>Current:</span><strong>${escapeHtml(summary.currentFocus)}</strong></div>
+        <button class="feature-toggle" type="button" aria-expanded="false" aria-controls="${escapeHtml(detailId)}">View feature <span class="expand-arrow" aria-hidden="true">↓</span></button>
+      </div>
+    </div>
+    <div class="feature-detail" id="${escapeHtml(detailId)}">
       ${howItWorksMarkup(feature.howItWorks)}
       <section class="evidence-section"><h3>How ${escapeHtml(summary.label)} evolved</h3>${featureEvidenceMarkup(feature)}</section>
       <div class="detail-grid">
@@ -283,17 +357,54 @@ function scopeHealthMarkup(summary) {
     <p class="rollup-note">Static product update; not inferred from Git activity.</p>`;
 }
 
+function horizonTimelineMarkup(horizonId) {
+  if (horizonId !== 'now') return '';
+
+  const events = features
+    .filter(feature => feature.horizon === horizonId)
+    .flatMap(productTimelineEvents)
+    .filter(event => event.showInHorizonTimeline);
+
+  return `<div class="horizon-timeline-heading">Major product milestones</div>
+    ${calendarTimelineMarkup(events, { variant: 'horizon', includeFeatureName: true })}`;
+}
+
+function openMilestone(featureId, eventIndex) {
+  const feature = features.find(item => item.id === featureId);
+  const event = feature?.productEvolution?.[eventIndex];
+  if (!event) return;
+
+  milestoneTitle.textContent = event.title;
+  milestoneBody.innerHTML = `
+    <div class="milestone-dialog-date">${escapeHtml(displayStageDate(event.date))}</div>
+    <section><h3>Product behavior at the time</h3><p>${escapeHtml(event.behaviorBefore)}</p></section>
+    <section><h3>What exercising it revealed</h3><p>${escapeHtml(event.finding)}</p></section>
+    <section><h3>Why it matters</h3><p>${escapeHtml(event.consequence)}</p></section>
+    <section><h3>Scope impact</h3><p>${escapeHtml(event.scopeImpact === 'none' ? 'No change to committed scope.' : event.scopeImpact)}</p></section>`;
+  milestoneDialog.showModal();
+}
+
+function bindTimelineMarkers(root) {
+  root.querySelectorAll('.calendar-marker-button').forEach(button => button.addEventListener('click', () => {
+    openMilestone(button.dataset.featureId, Number(button.dataset.eventIndex));
+  }));
+}
+
 function render() {
   const horizon = horizons.find(item => item.id === activeHorizon);
   description.textContent = `${horizon.subtitle} — ${horizon.description}`;
   tabs.innerHTML = horizons.map(item => `<button type="button" class="tab" role="tab" data-horizon="${item.id}" aria-selected="${item.id === activeHorizon}">${item.label}</button>`).join('');
+  horizonTimelineElement.innerHTML = horizonTimelineMarkup(activeHorizon);
+  horizonTimelineElement.hidden = activeHorizon !== 'now';
   list.innerHTML = features.filter(feature => feature.horizon === activeHorizon).map(featureMarkup).join('');
   tabs.querySelectorAll('.tab').forEach(button => button.addEventListener('click', () => { activeHorizon = button.dataset.horizon; render(); }));
-  list.querySelectorAll('.feature-summary').forEach(button => button.addEventListener('click', () => {
+  list.querySelectorAll('.feature-toggle').forEach(button => button.addEventListener('click', () => {
     const card = button.closest('.feature-card');
     const open = card.classList.toggle('open');
     button.setAttribute('aria-expanded', String(open));
   }));
+  bindTimelineMarkers(horizonTimelineElement);
+  bindTimelineMarkers(list);
 }
 
 sourceList.innerHTML = sourceDocs.map(doc => `<article class="source-item"><a href="${encodeURI(doc.path)}" target="_blank" rel="noopener">${escapeHtml(doc.label)}</a><p>${escapeHtml(doc.note)}</p></article>`).join('');

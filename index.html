@@ -32,6 +32,7 @@
         <div id="horizonTabs" class="tabs" role="tablist" aria-label="Roadmap horizon"></div>
       </div>
       <p id="horizonDescription" class="horizon-description"></p>
+      <div id="horizonTimeline" class="horizon-timeline"></div>
       <div id="featureList" class="feature-list"></div>
     </section>
   </main>
@@ -45,9 +46,19 @@
       <p>These documents seed the current tracker. Later, GitHub commits/PRs/project updates can populate feature evidence without changing the readiness model.</p>
       <div id="sourceList" class="source-list"></div>
       <div class="integration-note">
-        <strong>Future integration seam</strong>
-        <p>Map GitHub events to feature evidence types: <code>IMPLEMENT</code>, <code>LEARN</code>, <code>DECIDE</code>, <code>VALIDATE</code>.</p>
+        <strong>Evidence boundary</strong>
+        <p>Product milestones describe behavior, learning, and decisions first. GitHub commits remain supporting evidence for anyone who wants the technical trace.</p>
       </div>
+    </form>
+  </dialog>
+
+  <dialog id="milestoneDialog" class="milestone-dialog" aria-labelledby="milestoneTitle">
+    <form method="dialog" class="milestone-dialog-inner">
+      <div class="dialog-head">
+        <div><div class="eyebrow">PRODUCT MILESTONE</div><h2 id="milestoneTitle"></h2></div>
+        <button class="icon-button" aria-label="Close milestone">×</button>
+      </div>
+      <div id="milestoneBody" class="milestone-body"></div>
     </form>
   </dialog>
 
