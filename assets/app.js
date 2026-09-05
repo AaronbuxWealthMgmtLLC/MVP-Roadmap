@@ -32,9 +32,7 @@ function progressMarkup(stage) {
 
 const featureSummaryOverrides = {
   'asset-selection-fit': {
-    label: 'Assess Fit',
-    currentFocus: 'Organizing candidate choices around meaningful contributions to the sleeve.',
-    userReadyExit: 'User can discover a meaningful candidate, understand what changes and make an informed choice.'
+    label: 'Assess Fit'
   }
 };
 
@@ -43,11 +41,12 @@ function readinessLabel(feature) {
 }
 
 function summaryContent(feature) {
-  return featureSummaryOverrides[feature.id] ?? {
-    label: feature.title,
-    currentFocus: feature.readinessStage === 'THESIS' && !feature.discoveryTrace.length
+  const overrides = featureSummaryOverrides[feature.id] ?? {};
+  return {
+    label: overrides.label ?? feature.title,
+    currentFocus: feature.currentQuestion ?? (feature.readinessStage === 'THESIS' && !feature.discoveryTrace.length
       ? 'Not started'
-      : feature.discoveryQuestion,
+      : feature.discoveryQuestion),
     userReadyExit: feature.exitCriterion
   };
 }
@@ -139,7 +138,72 @@ function discoveryTraceMarkup(items) {
   }).join('')}</div>`;
 }
 
+const productEvolutionGlyphs = {
+  commitment: '○',
+  behavior: '×',
+  finding: '◆',
+  completion: '✓'
+};
+
+function productEvolutionMarkup(items) {
+  return `<div class="product-evolution-timeline">${items.map((item, index) => {
+    const elapsed = index > 0 ? elapsedLabel(items[index - 1].date, item.date) : null;
+    const scopeImpact = item.scopeImpact === 'none'
+      ? 'NO CHANGE TO COMMITTED SCOPE'
+      : item.scopeImpact.toUpperCase();
+
+    return `
+      ${elapsed ? `<div class="timeline-elapsed"><span aria-hidden="true">↓</span> ${escapeHtml(elapsed)}</div>` : ''}
+      <article class="evolution-entry" data-marker="${escapeHtml(item.marker)}">
+        <time class="timeline-date" ${item.date ? `datetime="${escapeHtml(item.date)}"` : ''}>${escapeHtml(displayStageDate(item.date))}</time>
+        <div class="evolution-marker" aria-label="${escapeHtml(item.marker)} milestone">${escapeHtml(productEvolutionGlyphs[item.marker])}</div>
+        <div class="timeline-content evolution-content">
+          <h4>${escapeHtml(item.title)}</h4>
+          <p class="evolution-consequence">${escapeHtml(item.consequence)}</p>
+          <details class="evolution-drilldown">
+            <summary>Understand this product change</summary>
+            <div class="evolution-detail-grid">
+              <section>
+                <h5>Product behavior at this point</h5>
+                <p>${escapeHtml(item.behaviorBefore)}</p>
+              </section>
+              <section>
+                <h5>What exercising it revealed</h5>
+                <p>${escapeHtml(item.finding)}</p>
+              </section>
+              <section>
+                <h5>What resulted</h5>
+                <p>${escapeHtml(item.consequence)}</p>
+              </section>
+            </div>
+          </details>
+          <div class="timeline-scope-impact">
+            <span>Scope impact</span>
+            <strong>${escapeHtml(scopeImpact)}</strong>
+          </div>
+          ${githubEvidenceMarkup(item.evidence)}
+        </div>
+      </article>`;
+  }).join('')}</div>`;
+}
+
+function howItWorksMarkup(model) {
+  if (!model) return '';
+
+  return `<section class="how-it-works-section">
+    <h3>How the product works</h3>
+    <div class="product-flow" role="list" aria-label="Product behavior flow">
+      ${model.steps.map((step, index) => `
+        <div class="product-flow-step" role="listitem">${escapeHtml(step.label)}</div>
+        ${index < model.steps.length - 1 ? '<div class="product-flow-arrow" aria-hidden="true">↓</div>' : ''}
+      `).join('')}
+    </div>
+    <p class="product-flow-explanation">${escapeHtml(model.explanation)}</p>
+  </section>`;
+}
+
 function featureEvidenceMarkup(feature) {
+  if (feature.productEvolution?.length) return productEvolutionMarkup(feature.productEvolution);
   if (feature.discoveryTrace?.length) return discoveryTraceMarkup(feature.discoveryTrace);
 
   const historyStatus = feature.evidence.length
@@ -180,13 +244,17 @@ function featureMarkup(feature) {
       <div class="feature-expand-label"><span>See how we got here</span><span class="expand-arrow" aria-hidden="true">↓</span></div>
     </button>
     <div class="feature-detail">
+      ${howItWorksMarkup(feature.howItWorks)}
       <section class="evidence-section"><h3>How ${escapeHtml(summary.label)} evolved</h3>${featureEvidenceMarkup(feature)}</section>
       <div class="detail-grid">
         <section class="detail-block"><h3>Roadmap horizon</h3><p>${escapeHtml(feature.horizon.toUpperCase())}</p></section>
         <section class="detail-block"><h3>User job</h3><p>${escapeHtml(feature.userJob)}</p></section>
+        ${feature.committedScope ? `<section class="detail-block"><h3>Committed scope</h3><p>${escapeHtml(feature.committedScope)}</p></section>` : ''}
+        ${feature.currentBehavior ? `<section class="detail-block"><h3>Current behavior</h3><p>${escapeHtml(feature.currentBehavior)}</p></section>` : ''}
         <section class="detail-block"><h3>Minimum viable behavior</h3><p>${escapeHtml(feature.minimumBehavior)}</p></section>
-        <section class="detail-block"><h3>Current discovery question</h3><p>${escapeHtml(feature.discoveryQuestion)}</p></section>
+        <section class="detail-block"><h3>Current discovery question</h3><p>${escapeHtml(feature.currentQuestion ?? feature.discoveryQuestion)}</p></section>
         <section class="detail-block"><h3>Exit criterion</h3><p>${escapeHtml(feature.exitCriterion)}</p></section>
+        ${feature.completion ? `<section class="detail-block completion-block"><h3>Completion · ${escapeHtml(feature.completion.status.replaceAll('-', ' '))}</h3><p>${escapeHtml(feature.completion.completed)}</p><p class="completion-remaining">Still required: ${escapeHtml(feature.completion.remaining)}</p></section>` : ''}
         <section class="detail-block scope-note"><h3>Scope impact</h3><p>${escapeHtml(feature.scopeImpact)}</p></section>
       </div>
       <section class="detail-block" style="margin-top:14px"><h3>Hard non-scope</h3><div class="chips">${feature.nonScope.map(item => `<span class="chip">${escapeHtml(item)}</span>`).join('')}</div></section>

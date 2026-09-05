@@ -40,6 +40,13 @@ export const discoveryTypes = [
   'VALIDATE'
 ];
 
+export const productEvolutionMarkers = [
+  'commitment',
+  'behavior',
+  'finding',
+  'completion'
+];
+
 export const readinessStates = [
   'THESIS',
   'WORKING',
@@ -117,6 +124,41 @@ export const scopeHealth = {
  * other.
  */
 
+/**
+ * Reference product-evolution feature contract:
+ * {
+ *   userJob: string,
+ *   committedScope: string,
+ *   howItWorks: {
+ *     steps: [{ id: string, label: string }],
+ *     explanation: string
+ *   },
+ *   currentBehavior: string,
+ *   currentQuestion: string,
+ *   exitCriterion: string,
+ *   completion: {
+ *     status: string,
+ *     completed: string,
+ *     remaining: string
+ *   },
+ *   productEvolution: [{
+ *     date: 'YYYY-MM-DD' | null,
+ *     dateStatus: 'needs-product-owner-confirmation' (only when date is null),
+ *     marker: one of productEvolutionMarkers,
+ *     title: string,
+ *     behaviorBefore: string,
+ *     finding: string,
+ *     consequence: string,
+ *     scopeImpact: string,
+ *     evidence: [{ repositoryId, commitSha, commitDate, commitMessage }]
+ *   }]
+ * }
+ *
+ * marker controls visual semantics only. The visible milestone title must
+ * describe the actual product event rather than repeat the generic marker.
+ * Legacy discoveryTrace and evidence fields remain during migration.
+ */
+
 export const sourceDocs = [
   { id: 'mvp1', label: 'April MVP1', path: 'docs/source-of-truth/april-mvp1.pdf', note: 'Insights/planning product; clarity, confidence and decision support; no execution.' },
   { id: 'mvp2', label: 'April MVP2', path: 'docs/source-of-truth/april-mvp2.pdf', note: 'Execution + premium intelligence concept.' },
@@ -148,12 +190,178 @@ export const features = [
     horizon: 'now',
     title: 'Asset Selection + Assess Fit',
     userJob: 'Help me decide whether a security meaningfully improves or changes my recommended sleeve.',
+    committedScope: 'Curated candidate discovery and contextual Assess Fit decision support inside the recommended portfolio system.',
+    howItWorks: {
+      steps: [
+        { id: 'recommended-system', label: 'Recommended portfolio system' },
+        { id: 'sleeve', label: 'Sleeve' },
+        { id: 'sleeve-job', label: 'Sleeve job' },
+        { id: 'eligible-securities', label: 'Curated eligible securities' },
+        { id: 'candidate-selection', label: 'User selects candidate' },
+        { id: 'assess-fit', label: 'Assess Fit' },
+        { id: 'decision-support', label: 'Portfolio change / contribution / overlap / tradeoffs / choices' }
+      ],
+      explanation: 'The product does not expose the entire market. Securities are curated into a bounded catalogue and mapped to portfolio contexts where they can reasonably belong. Assess Fit evaluates the selected candidate relative to the sleeve\'s current hypothetical holdings.'
+    },
+    currentBehavior: 'Users select a curated eligible security and see how it changes the current hypothetical sleeve, including contribution, overlap, tradeoffs, valid choices and a preferred default.',
+    currentQuestion: 'How should candidate choices be organized around useful contributions so users do not have to evaluate a flat security list?',
     minimumBehavior: 'Contextual candidate discovery → portfolio delta → overlap/contribution → tradeoffs → valid choices → preferred default.',
     discoveryQuestion: 'What must “fit” minimally tell the user so the decision is useful rather than merely classified?',
     exitCriterion: 'A user can distinguish useful addition, intentional tilt, alternative implementation, replacement, and poor contextual fit.',
     nonScope: ['Best-investment ranking', 'Return forecasting', 'Automated optimization', 'Trade execution'],
     stage: 5,
     readinessStage: 'BEHAVIOR_REFINING',
+    completion: {
+      status: 'in-progress',
+      completed: 'Portfolio-change assessment behavior is implemented and has been exercised across the catalogue.',
+      remaining: 'Contribution-oriented candidate discovery still needs a dated product decision, implementation evidence and user validation.'
+    },
+    productEvolution: [
+      {
+        date: null,
+        dateStatus: 'needs-product-owner-confirmation',
+        marker: 'commitment',
+        title: 'Asset Selection + Assess Fit committed',
+        behaviorBefore: 'The MVP commitment was to help a user choose a curated security and understand whether it belonged in a recommended portfolio sleeve.',
+        finding: 'The commitment bounded the experience to contextual candidate selection and fit assessment rather than open-market search or investment ranking.',
+        consequence: 'The first product behavior focused on curated securities and four explicit fit outcomes.',
+        scopeImpact: 'none',
+        evidence: [
+          {
+            repositoryId: 'onboarding-v3',
+            commitSha: '9090a057b623f35f097815c16a6715cc4c514fd1',
+            commitDate: '2026-08-28',
+            commitMessage: 'adding docs'
+          }
+        ]
+      },
+      {
+        date: '2026-08-29',
+        marker: 'behavior',
+        title: 'Curated securities + four fit outcomes available',
+        behaviorBefore: 'Users could browse securities curated for a sleeve, select one, and receive Add, Replace, Redundant or Do not add.',
+        finding: 'This created the first working, user-visible behavior that could be exercised against hypothetical sleeve holdings.',
+        consequence: 'Catalogue use could now reveal whether the four outcomes gave users enough help to make a decision.',
+        scopeImpact: 'none',
+        evidence: [
+          {
+            repositoryId: 'onboarding-v3',
+            commitSha: 'ec5b3ac8c801e2b52c9c325e156eaf458e175ce9',
+            commitDate: '2026-08-28',
+            commitMessage: 'phase-1 - part1'
+          },
+          {
+            repositoryId: 'onboarding-v3',
+            commitSha: '25311f966111e7226988dba0db09f6d042539173',
+            commitDate: '2026-08-29',
+            commitMessage: 'feat(portfolio-map): add interactive sleeve curation lab'
+          }
+        ]
+      },
+      {
+        date: '2026-09-03',
+        marker: 'finding',
+        title: 'Valid alternatives often looked redundant',
+        behaviorBefore: 'Once a reasonable holding existed, another eligible candidate in the same category was often reduced to the Redundant outcome.',
+        finding: 'The catalogue-wide audit later measured 18,548 Redundant results across 20,218 Phase-2 scenarios, including candidates that still changed portfolio exposure.',
+        consequence: 'The assessment was technically consistent but provided weak decision support for legitimate alternatives.',
+        scopeImpact: 'none',
+        evidence: [
+          {
+            repositoryId: 'onboarding-v3',
+            commitSha: '48ee1858e6f16fe7c29d8f8e0a247f7b077cbdea',
+            commitDate: '2026-09-03',
+            commitMessage: 'Task 13 — Catalogue-wide behavior audit'
+          }
+        ]
+      },
+      {
+        date: '2026-09-03',
+        marker: 'finding',
+        title: 'Fit alone is not enough',
+        behaviorBefore: 'Assess Fit answered which structural label applied to a candidate.',
+        finding: 'A user also needed to understand what would change, what would overlap, which tradeoffs followed and which reasonable choices remained.',
+        consequence: 'The product decision changed Assess Fit from a terminal classification into portfolio-change decision support.',
+        scopeImpact: 'none',
+        evidence: [
+          {
+            repositoryId: 'onboarding-v3',
+            commitSha: 'c7d2e492e92399592155277ae65b827a7fcdc115',
+            commitDate: '2026-09-03',
+            commitMessage: 'Task 1 — Freeze and document the product-semantics change'
+          }
+        ]
+      },
+      {
+        date: '2026-09-03',
+        marker: 'behavior',
+        title: 'Portfolio-change explanation added',
+        behaviorBefore: 'The product primarily assigned a fit label to the selected security.',
+        finding: 'Overlap could be meaningful evidence without being a complete verdict, and more than one action could remain reasonable.',
+        consequence: 'Assess Fit now explains incremental contribution, overlap, tradeoffs, available choices and a preferred default in the current sleeve context.',
+        scopeImpact: 'none',
+        evidence: [
+          {
+            repositoryId: 'onboarding-v3',
+            commitSha: 'c54e08f03ee5399894096b6f5e18dc2ee2e65dbc',
+            commitDate: '2026-09-03',
+            commitMessage: 'Task 3 — Build incremental-contribution analysis'
+          },
+          {
+            repositoryId: 'onboarding-v3',
+            commitSha: '69a742da5a17713a57d2dd33fa536ba765273572',
+            commitDate: '2026-09-03',
+            commitMessage: 'Task 4 — Interpret overlap as a tradeoff, not a verdict'
+          },
+          {
+            repositoryId: 'onboarding-v3',
+            commitSha: 'c7bb1b819a56e35753add85f7277f702b8ee7d10',
+            commitDate: '2026-09-03',
+            commitMessage: 'Task 5 — Build tradeoff resolver'
+          },
+          {
+            repositoryId: 'onboarding-v3',
+            commitSha: '051dc0a93357dfec8ea85bb8f6245d096649669d',
+            commitDate: '2026-09-03',
+            commitMessage: 'Task 6 — Build available-actions resolver'
+          },
+          {
+            repositoryId: 'onboarding-v3',
+            commitSha: '267f1d4d4a31893562390b889f6a349240067f88',
+            commitDate: '2026-09-03',
+            commitMessage: 'Task 7 — Build preferred-action resolver'
+          },
+          {
+            repositoryId: 'onboarding-v3',
+            commitSha: '5fb4d34365bdb799444941980f66581da29c8fce',
+            commitDate: '2026-09-03',
+            commitMessage: 'Task 10 — Route Portfolio Map through the Phase-3 resolver'
+          }
+        ]
+      },
+      {
+        date: null,
+        dateStatus: 'needs-product-owner-confirmation',
+        marker: 'finding',
+        title: 'Flat security browsing still creates unnecessary decisions',
+        behaviorBefore: 'Users browse a flat list of eligible securities before selecting a candidate to assess.',
+        finding: 'The supplied product direction says this still asks users to evaluate too many interchangeable choices before Assess Fit can help.',
+        consequence: 'Candidate discovery needs to reduce the decision burden before assessment begins.',
+        scopeImpact: 'none',
+        evidence: []
+      },
+      {
+        date: null,
+        dateStatus: 'needs-product-owner-confirmation',
+        marker: 'commitment',
+        title: 'Organize candidates by useful contribution',
+        behaviorBefore: 'Eligible candidates are presented primarily as a flat catalogue.',
+        finding: 'Users should begin with the contribution they want the sleeve to make rather than compare a long list of similar securities.',
+        consequence: 'The next product behavior is contribution-oriented candidate organization; its decision date and implementation evidence remain unresolved.',
+        scopeImpact: 'none',
+        evidence: []
+      }
+    ],
     discoveryTrace: [
       {
         type: 'DECIDE',
@@ -524,6 +732,7 @@ export const features = [
 ];
 
 export const TRACKER_DATA = {
+  productEvolutionMarkers,
   sourceRepositories,
   roadmapRollup,
   scopeHealth,
