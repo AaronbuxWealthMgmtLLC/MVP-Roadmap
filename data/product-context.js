@@ -141,9 +141,8 @@ export const timelineCalendar = {
  *   currentQuestion: string,
  *   exitCriterion: string,
  *   completion: {
- *     status: string,
- *     completed: string,
- *     remaining: string
+ *     date: 'YYYY-MM-DD' | null,
+ *     status: 'not-yet-frozen'
  *   },
  *   productEvolution: [{
  *     date: 'YYYY-MM-DD' | null,
@@ -154,8 +153,16 @@ export const timelineCalendar = {
  *     behaviorBefore: string,
  *     finding: string,
  *     consequence: string,
- *     scopeImpact: string,
- *     evidence: [{ repositoryId, commitSha, commitDate, commitMessage }]
+ *     scopeImpact: 'none' | 'clarification' | 'new-capability-deferred',
+ *     scopeExplanation: string (optional; shown for consequential decisions),
+ *     evidence: [{
+ *       repositoryId,
+ *       commitSha,
+ *       commitDate,
+ *       commitMessage,
+ *       implementationArea,
+ *       verification
+ *     }]
  *   }]
  * }
  *
@@ -208,18 +215,17 @@ export const features = [
       ],
       explanation: 'The product does not expose the entire market. Securities are curated into a bounded catalogue and mapped to portfolio contexts where they can reasonably belong. Assess Fit evaluates the selected candidate relative to the sleeve\'s current hypothetical holdings.'
     },
-    currentBehavior: 'Users select a curated eligible security and see how it changes the current hypothetical sleeve, including contribution, overlap, tradeoffs, valid choices and a preferred default.',
-    currentQuestion: 'How should candidate choices be organized around useful contributions so users do not have to evaluate a flat security list?',
+    currentBehavior: 'Portfolio-change decision support',
+    currentQuestion: 'Can candidate discovery surface meaningful choices without requiring users to assess many near-equivalent securities?',
     minimumBehavior: 'Contextual candidate discovery → portfolio delta → overlap/contribution → tradeoffs → valid choices → preferred default.',
     discoveryQuestion: 'What must “fit” minimally tell the user so the decision is useful rather than merely classified?',
-    exitCriterion: 'A user can distinguish useful addition, intentional tilt, alternative implementation, replacement, and poor contextual fit.',
+    exitCriterion: 'Users can discover a purposeful candidate and understand what it changes, its overlap and tradeoffs, and the reasonable choices.',
     nonScope: ['Best-investment ranking', 'Return forecasting', 'Automated optimization', 'Trade execution'],
     stage: 5,
     readinessStage: 'BEHAVIOR_REFINING',
     completion: {
-      status: 'in-progress',
-      completed: 'Portfolio-change assessment behavior is implemented and has been exercised across the catalogue.',
-      remaining: 'Contribution-oriented candidate discovery still needs a dated product decision, implementation evidence and user validation.'
+      date: null,
+      status: 'not-yet-frozen'
     },
     productEvolution: [
       {
@@ -230,13 +236,16 @@ export const features = [
         behaviorBefore: 'The MVP commitment was to help a user choose a curated security and understand whether it belonged in a recommended portfolio sleeve.',
         finding: 'The commitment bounded the experience to contextual candidate selection and fit assessment rather than open-market search or investment ranking.',
         consequence: 'The first product behavior focused on curated securities and four explicit fit outcomes.',
-        scopeImpact: 'none',
+        scopeImpact: 'new-capability-deferred',
+        scopeExplanation: 'Open-market search, security ranking and automated optimization remain outside the committed MVP.',
         evidence: [
           {
             repositoryId: 'onboarding-v3',
             commitSha: '9090a057b623f35f097815c16a6715cc4c514fd1',
             commitDate: '2026-08-28',
-            commitMessage: 'adding docs'
+            commitMessage: 'adding docs',
+            implementationArea: 'Phase-1 security-selection product specification',
+            verification: 'Committed scope and four-outcome behavior documented'
           }
         ]
       },
@@ -254,13 +263,17 @@ export const features = [
             repositoryId: 'onboarding-v3',
             commitSha: 'ec5b3ac8c801e2b52c9c325e156eaf458e175ce9',
             commitDate: '2026-08-28',
-            commitMessage: 'phase-1 - part1'
+            commitMessage: 'phase-1 - part1',
+            implementationArea: 'Security fit assessment behavior',
+            verification: 'Fit behavior and eligibility coverage'
           },
           {
             repositoryId: 'onboarding-v3',
             commitSha: '25311f966111e7226988dba0db09f6d042539173',
             commitDate: '2026-08-29',
-            commitMessage: 'feat(portfolio-map): add interactive sleeve curation lab'
+            commitMessage: 'feat(portfolio-map): add interactive sleeve curation lab',
+            implementationArea: 'Portfolio Map candidate-selection experience',
+            verification: 'Curation interaction and session tests'
           }
         ]
       },
@@ -278,7 +291,9 @@ export const features = [
             repositoryId: 'onboarding-v3',
             commitSha: '48ee1858e6f16fe7c29d8f8e0a247f7b077cbdea',
             commitDate: '2026-09-03',
-            commitMessage: 'Task 13 — Catalogue-wide behavior audit'
+            commitMessage: 'Task 13 — Catalogue-wide behavior audit',
+            implementationArea: 'Catalogue-wide Assess Fit behavior',
+            verification: '20,218-scenario Phase-3 behavior audit'
           }
         ]
       },
@@ -291,12 +306,15 @@ export const features = [
         finding: 'A user also needed to understand what would change, what would overlap, which tradeoffs followed and which reasonable choices remained.',
         consequence: 'The product decision changed Assess Fit from a terminal classification into portfolio-change decision support.',
         scopeImpact: 'none',
+        scopeExplanation: 'Same Asset Selection + Assess Fit user job. The minimum behavior required to fulfill it changed.',
         evidence: [
           {
             repositoryId: 'onboarding-v3',
             commitSha: 'c7d2e492e92399592155277ae65b827a7fcdc115',
             commitDate: '2026-09-03',
-            commitMessage: 'Task 1 — Freeze and document the product-semantics change'
+            commitMessage: 'Task 1 — Freeze and document the product-semantics change',
+            implementationArea: 'Assess Fit product behavior contract',
+            verification: 'Product-semantics decision documented before behavior changed'
           }
         ]
       },
@@ -314,37 +332,49 @@ export const features = [
             repositoryId: 'onboarding-v3',
             commitSha: 'c54e08f03ee5399894096b6f5e18dc2ee2e65dbc',
             commitDate: '2026-09-03',
-            commitMessage: 'Task 3 — Build incremental-contribution analysis'
+            commitMessage: 'Task 3 — Build incremental-contribution analysis',
+            implementationArea: 'Incremental contribution explanation',
+            verification: 'Incremental-contribution behavior tests'
           },
           {
             repositoryId: 'onboarding-v3',
             commitSha: '69a742da5a17713a57d2dd33fa536ba765273572',
             commitDate: '2026-09-03',
-            commitMessage: 'Task 4 — Interpret overlap as a tradeoff, not a verdict'
+            commitMessage: 'Task 4 — Interpret overlap as a tradeoff, not a verdict',
+            implementationArea: 'Overlap interpretation',
+            verification: 'Overlap-interpretation behavior tests'
           },
           {
             repositoryId: 'onboarding-v3',
             commitSha: 'c7bb1b819a56e35753add85f7277f702b8ee7d10',
             commitDate: '2026-09-03',
-            commitMessage: 'Task 5 — Build tradeoff resolver'
+            commitMessage: 'Task 5 — Build tradeoff resolver',
+            implementationArea: 'Tradeoff explanation',
+            verification: 'Tradeoff behavior tests'
           },
           {
             repositoryId: 'onboarding-v3',
             commitSha: '051dc0a93357dfec8ea85bb8f6245d096649669d',
             commitDate: '2026-09-03',
-            commitMessage: 'Task 6 — Build available-actions resolver'
+            commitMessage: 'Task 6 — Build available-actions resolver',
+            implementationArea: 'Reasonable available choices',
+            verification: 'Available-choice behavior tests'
           },
           {
             repositoryId: 'onboarding-v3',
             commitSha: '267f1d4d4a31893562390b889f6a349240067f88',
             commitDate: '2026-09-03',
-            commitMessage: 'Task 7 — Build preferred-action resolver'
+            commitMessage: 'Task 7 — Build preferred-action resolver',
+            implementationArea: 'Preferred default choice',
+            verification: 'Preferred-action behavior tests'
           },
           {
             repositoryId: 'onboarding-v3',
             commitSha: '5fb4d34365bdb799444941980f66581da29c8fce',
             commitDate: '2026-09-03',
-            commitMessage: 'Task 10 — Route Portfolio Map through the Phase-3 resolver'
+            commitMessage: 'Task 10 — Route Portfolio Map through the Phase-3 resolver',
+            implementationArea: 'Portfolio Map decision-support presentation',
+            verification: 'Interaction, presentation and compliance tests'
           }
         ]
       },
@@ -367,7 +397,8 @@ export const features = [
         behaviorBefore: 'Eligible candidates are presented primarily as a flat catalogue.',
         finding: 'Users should begin with the contribution they want the sleeve to make rather than compare a long list of similar securities.',
         consequence: 'The next product behavior is contribution-oriented candidate organization; its decision date and implementation evidence remain unresolved.',
-        scopeImpact: 'none',
+        scopeImpact: 'clarification',
+        scopeExplanation: 'Candidate organization clarifies how the committed Asset Selection experience should reduce unnecessary choices; it does not add a new user job.',
         evidence: []
       }
     ],

@@ -59,7 +59,7 @@ function commitUrl(evidence) {
   return `${repository.baseUrl}/commit/${encodeURIComponent(evidence.commitSha)}`;
 }
 
-function githubEvidenceMarkup(items) {
+function implementationEvidenceMarkup(items = []) {
   const rows = items.map(item => {
     const repository = sourceRepositories[item.repositoryId];
     const url = commitUrl(item);
@@ -68,21 +68,26 @@ function githubEvidenceMarkup(items) {
       ? `<a href="${escapeHtml(url)}" target="_blank" rel="noopener" aria-label="View commit ${escapeHtml(shortSha)} in ${escapeHtml(repository.label)}">${escapeHtml(shortSha)}</a>`
       : `<span>${escapeHtml(shortSha)}</span>`;
 
-    return `<div class="github-evidence-row">
-      <time datetime="${escapeHtml(item.commitDate)}">${escapeHtml(formatMonthDay(item.commitDate))}</time>
-      <div class="github-evidence-sha">${shaMarkup}</div>
-      <div class="github-evidence-message">${escapeHtml(item.commitMessage)}</div>
-    </div>`;
+    return `<article class="implementation-evidence-row">
+      <div class="implementation-evidence-meta">
+        <strong class="implementation-repository">${escapeHtml(repository?.repo ?? item.repositoryId)}</strong>
+        <time datetime="${escapeHtml(item.commitDate)}">${escapeHtml(formatMonthDay(item.commitDate))}</time>
+        <div class="implementation-evidence-sha">${shaMarkup}</div>
+      </div>
+      <div class="implementation-evidence-message">${escapeHtml(item.commitMessage)}</div>
+      ${item.implementationArea ? `<div class="implementation-evidence-detail"><span>Relevant implementation area</span><p>${escapeHtml(item.implementationArea)}</p></div>` : ''}
+      ${item.verification ? `<div class="implementation-evidence-detail"><span>Tests / audits</span><p>${escapeHtml(item.verification)}</p></div>` : ''}
+    </article>`;
   }).join('');
 
   const body = items.length
     ? rows
-    : '<p class="github-evidence-empty">No supporting commit recorded; the product date still needs confirmation.</p>';
+    : '<p class="implementation-evidence-empty">No implementation evidence recorded.</p>';
 
-  return `<details class="timeline-evidence">
-    <summary><span>GitHub evidence</span><span class="evidence-chevron" aria-hidden="true">⌄</span></summary>
-    <div class="github-evidence-panel">
-      <div class="github-evidence-heading">GitHub evidence</div>
+  return `<details class="implementation-evidence">
+    <summary><span>Implementation evidence</span><span class="evidence-chevron" aria-hidden="true">⌄</span></summary>
+    <div class="implementation-evidence-panel">
+      <div class="implementation-evidence-heading">Implementation evidence</div>
       ${body}
     </div>
   </details>`;
@@ -133,7 +138,7 @@ function discoveryTraceMarkup(items) {
             <span>Scope impact</span>
             <strong>${escapeHtml(item.scopeImpact === 'none' ? 'NO CHANGE TO MVP SCOPE' : item.scopeImpact.toUpperCase())}</strong>
           </div>
-          ${githubEvidenceMarkup(item.githubEvidence)}
+          ${implementationEvidenceMarkup(item.githubEvidence)}
         </div>
       </article>`;
   }).join('')}</div>`;
@@ -224,46 +229,59 @@ function calendarTimelineMarkup(events, { variant = 'feature', includeFeatureNam
   </div>`;
 }
 
-function productEvolutionMarkup(items) {
-  return `<div class="product-evolution-timeline">${items.map((item, index) => {
-    const elapsed = index > 0 ? elapsedLabel(items[index - 1].date, item.date) : null;
-    const scopeImpact = item.scopeImpact === 'none'
-      ? 'NO CHANGE TO COMMITTED SCOPE'
-      : item.scopeImpact.toUpperCase();
+const scopeImpactPresentation = {
+  none: {
+    label: 'NO SCOPE CHANGE',
+    fallback: 'The committed feature scope did not change.'
+  },
+  clarification: {
+    label: 'SCOPE CLARIFICATION',
+    fallback: 'The minimum behavior was clarified within the committed user job.'
+  },
+  'new-capability-deferred': {
+    label: 'NEW CAPABILITY — DEFERRED',
+    fallback: 'The additional capability remains outside the committed MVP.'
+  }
+};
 
-    return `
-      ${elapsed ? `<div class="timeline-elapsed"><span aria-hidden="true">↓</span> ${escapeHtml(elapsed)}</div>` : ''}
-      <article class="evolution-entry" data-marker="${escapeHtml(item.marker)}">
-        <time class="timeline-date" ${item.date ? `datetime="${escapeHtml(item.date)}"` : ''}>${escapeHtml(displayStageDate(item.date))}</time>
-        <div class="evolution-marker" aria-label="${escapeHtml(item.marker)} milestone">${escapeHtml(productEvolutionGlyphs[item.marker])}</div>
-        <div class="timeline-content evolution-content">
-          <h4>${escapeHtml(item.title)}</h4>
-          <p class="evolution-consequence">${escapeHtml(item.consequence)}</p>
-          <details class="evolution-drilldown">
-            <summary>Understand this product change</summary>
-            <div class="evolution-detail-grid">
-              <section>
-                <h5>Product behavior at this point</h5>
-                <p>${escapeHtml(item.behaviorBefore)}</p>
-              </section>
-              <section>
-                <h5>What exercising it revealed</h5>
-                <p>${escapeHtml(item.finding)}</p>
-              </section>
-              <section>
-                <h5>What resulted</h5>
-                <p>${escapeHtml(item.consequence)}</p>
-              </section>
-            </div>
-          </details>
-          <div class="timeline-scope-impact">
-            <span>Scope impact</span>
-            <strong>${escapeHtml(scopeImpact)}</strong>
-          </div>
-          ${githubEvidenceMarkup(item.evidence)}
-        </div>
-      </article>`;
-  }).join('')}</div>`;
+function scopeImpactMarkup(event, { compact = false } = {}) {
+  const presentation = scopeImpactPresentation[event.scopeImpact];
+  if (!presentation) return '';
+  const explanation = event.scopeExplanation ?? presentation.fallback;
+
+  return `<div class="scope-impact-callout${compact ? ' scope-impact-compact' : ''}" data-scope-impact="${escapeHtml(event.scopeImpact)}">
+    <strong>${escapeHtml(presentation.label)}</strong>
+    ${compact ? '' : `<p>${escapeHtml(explanation)}</p>`}
+  </div>`;
+}
+
+function productTraceMarkup(items) {
+  return `<div class="product-trace">${items.map(item => `
+    <article class="product-trace-row" data-marker="${escapeHtml(item.marker)}">
+      <time ${item.date ? `datetime="${escapeHtml(item.date)}"` : ''}>${escapeHtml(displayStageDate(item.date))}</time>
+      <span class="product-trace-marker" aria-hidden="true">${escapeHtml(productEvolutionGlyphs[item.marker])}</span>
+      <div class="product-trace-event">
+        <button type="button" class="trace-milestone-button" data-feature-id="${escapeHtml(item.featureId)}" data-event-index="${item.eventIndex}">${escapeHtml(item.title)}</button>
+        ${item.scopeExplanation ? scopeImpactMarkup(item, { compact: true }) : ''}
+      </div>
+    </article>`).join('')}</div>`;
+}
+
+function productEvolutionViewsMarkup(feature) {
+  const events = productTimelineEvents(feature);
+  const viewId = `evolution-${feature.id}`;
+  return `<div class="evolution-views" data-feature-id="${escapeHtml(feature.id)}">
+    <div class="evolution-view-switch" role="tablist" aria-label="Product evolution view">
+      <button type="button" class="evolution-view-tab" role="tab" aria-selected="true" aria-controls="${escapeHtml(viewId)}-timeline" data-view="timeline">Timeline</button>
+      <button type="button" class="evolution-view-tab" role="tab" aria-selected="false" aria-controls="${escapeHtml(viewId)}-trace" data-view="trace">Trace</button>
+    </div>
+    <div class="evolution-view-panel" id="${escapeHtml(viewId)}-timeline" role="tabpanel" data-view-panel="timeline">
+      ${calendarTimelineMarkup(events, { variant: 'expanded' })}
+    </div>
+    <div class="evolution-view-panel" id="${escapeHtml(viewId)}-trace" role="tabpanel" data-view-panel="trace" hidden>
+      ${productTraceMarkup(events)}
+    </div>
+  </div>`;
 }
 
 function howItWorksMarkup(model) {
@@ -282,7 +300,7 @@ function howItWorksMarkup(model) {
 }
 
 function featureEvidenceMarkup(feature) {
-  if (feature.productEvolution?.length) return productEvolutionMarkup(feature.productEvolution);
+  if (feature.productEvolution?.length) return productEvolutionViewsMarkup(feature);
   if (feature.discoveryTrace?.length) return discoveryTraceMarkup(feature.discoveryTrace);
 
   const historyStatus = feature.evidence.length
@@ -298,6 +316,19 @@ function featureEvidenceMarkup(feature) {
     <p>${escapeHtml(feature.discoveryQuestion)}</p>
     <p class="empty-evidence-note">${escapeHtml(historyStatus)}</p>
   </div>`;
+}
+
+function currentStateMarkup(feature) {
+  const currentQuestion = feature.currentQuestion ?? feature.discoveryQuestion;
+  if (!feature.currentBehavior && !currentQuestion && !feature.exitCriterion) return '';
+  const completionStatus = feature.completion?.status?.replaceAll('-', ' ') ?? 'not yet frozen';
+
+  return `<section class="current-state-panel" aria-label="Current feature state">
+    ${feature.currentBehavior ? `<div><h3>Current behavior</h3><p>${escapeHtml(feature.currentBehavior)}</p></div>` : ''}
+    ${currentQuestion ? `<div><h3>Current product question</h3><p>${escapeHtml(currentQuestion)}</p></div>` : ''}
+    ${feature.exitCriterion ? `<div><h3>Exit criterion</h3><p>${escapeHtml(feature.exitCriterion)}</p></div>` : ''}
+    ${feature.completion ? `<div class="completion-state"><h3>Completion</h3><strong>${escapeHtml(completionStatus.toUpperCase())}</strong>${feature.completion.date ? `<time datetime="${escapeHtml(feature.completion.date)}">${escapeHtml(formatMonthDay(feature.completion.date))}</time>` : ''}</div>` : ''}
+  </section>`;
 }
 
 function featureMarkup(feature) {
@@ -318,6 +349,7 @@ function featureMarkup(feature) {
       </div>
     </div>
     <div class="feature-detail" id="${escapeHtml(detailId)}">
+      ${currentStateMarkup(feature)}
       ${howItWorksMarkup(feature.howItWorks)}
       <section class="evidence-section"><h3>How ${escapeHtml(summary.label)} evolved</h3>${featureEvidenceMarkup(feature)}</section>
       <div class="detail-grid">
@@ -328,7 +360,6 @@ function featureMarkup(feature) {
         <section class="detail-block"><h3>Minimum viable behavior</h3><p>${escapeHtml(feature.minimumBehavior)}</p></section>
         <section class="detail-block"><h3>Current discovery question</h3><p>${escapeHtml(feature.currentQuestion ?? feature.discoveryQuestion)}</p></section>
         <section class="detail-block"><h3>Exit criterion</h3><p>${escapeHtml(feature.exitCriterion)}</p></section>
-        ${feature.completion ? `<section class="detail-block completion-block"><h3>Completion · ${escapeHtml(feature.completion.status.replaceAll('-', ' '))}</h3><p>${escapeHtml(feature.completion.completed)}</p><p class="completion-remaining">Still required: ${escapeHtml(feature.completion.remaining)}</p></section>` : ''}
         <section class="detail-block scope-note"><h3>Scope impact</h3><p>${escapeHtml(feature.scopeImpact)}</p></section>
       </div>
       <section class="detail-block" style="margin-top:14px"><h3>Hard non-scope</h3><div class="chips">${feature.nonScope.map(item => `<span class="chip">${escapeHtml(item)}</span>`).join('')}</div></section>
@@ -380,13 +411,26 @@ function openMilestone(featureId, eventIndex) {
     <section><h3>Product behavior at the time</h3><p>${escapeHtml(event.behaviorBefore)}</p></section>
     <section><h3>What exercising it revealed</h3><p>${escapeHtml(event.finding)}</p></section>
     <section><h3>Why it matters</h3><p>${escapeHtml(event.consequence)}</p></section>
-    <section><h3>Scope impact</h3><p>${escapeHtml(event.scopeImpact === 'none' ? 'No change to committed scope.' : event.scopeImpact)}</p></section>`;
+    ${scopeImpactMarkup(event)}
+    ${implementationEvidenceMarkup(event.evidence)}`;
   milestoneDialog.showModal();
 }
 
 function bindTimelineMarkers(root) {
-  root.querySelectorAll('.calendar-marker-button').forEach(button => button.addEventListener('click', () => {
+  root.querySelectorAll('.calendar-marker-button, .trace-milestone-button').forEach(button => button.addEventListener('click', () => {
     openMilestone(button.dataset.featureId, Number(button.dataset.eventIndex));
+  }));
+}
+
+function bindEvolutionViewSwitches(root) {
+  root.querySelectorAll('.evolution-view-tab').forEach(button => button.addEventListener('click', () => {
+    const views = button.closest('.evolution-views');
+    views.querySelectorAll('.evolution-view-tab').forEach(tab => {
+      tab.setAttribute('aria-selected', String(tab === button));
+    });
+    views.querySelectorAll('.evolution-view-panel').forEach(panel => {
+      panel.hidden = panel.dataset.viewPanel !== button.dataset.view;
+    });
   }));
 }
 
@@ -405,6 +449,7 @@ function render() {
   }));
   bindTimelineMarkers(horizonTimelineElement);
   bindTimelineMarkers(list);
+  bindEvolutionViewSwitches(list);
 }
 
 sourceList.innerHTML = sourceDocs.map(doc => `<article class="source-item"><a href="${encodeURI(doc.path)}" target="_blank" rel="noopener">${escapeHtml(doc.label)}</a><p>${escapeHtml(doc.note)}</p></article>`).join('');
